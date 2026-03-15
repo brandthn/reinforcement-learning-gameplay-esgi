@@ -1,0 +1,19 @@
+[project]
+name = "drl-project"
+version = "0.1.0"
+description = "Deep Reinforcement Learning — 16 algorithms across 4 environments"
+requires-python = ">=3.11"
+dependencies = [
+    "torch",
+    "numpy",
+    "pygame",
+    "pyyaml",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

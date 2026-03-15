@@ -1,0 +1,188 @@
+import numpy as np
+
+from .base import Environment
+
+BOARD_SIZE = 5
+NUM_CELLS = BOARD_SIZE * BOARD_SIZE
+DIRECTIONS = [(-1, -1), (-1, 0), (-1, 1),
+              (0, -1),           (0, 1),
+              (1, -1),  (1, 0),  (1, 1)]
+
+# Initial positions (row, col)
+# Player 0: bottom row (row 4)
+_P0_START = [(4, c) for c in range(5)]
+# Player 1: top row (row 0)
+_P1_START = [(0, c) for c in range(5)]
+_BOBAIL_START = (2, 2)
+
+PHASE_BOBAIL = 0
+PHASE_PIECE = 1
+
+
+def _rc_to_idx(r: int, c: int) -> int:
+    return r * BOARD_SIZE + c
+
+
+def _idx_to_rc(idx: int) -> tuple[int, int]:
+    return divmod(idx, BOARD_SIZE)
+
+
+def _in_bounds(r: int, c: int) -> bool:
+    return 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE
+
+
+class BobailEnv(Environment):
+    """Bobail: 5x5 two-player game with two-phase turns (D-003).
+
+    Action encoding: from_cell * 25 + to_cell (action space = 625).
+    Phase 0 = move bobail (1 step), Phase 1 = move own piece (slide).
+    First turn of the game: player 0 skips the bobail phase.
+    """
+
+    def __init__(self):
+        # pieces[player] = set of cell indices
+        self._pieces = [set(), set()]
+        self._bobail = 0
+        self._current = 0
+        self._phase = PHASE_PIECE  # first turn starts at piece phase
+        self._done = False
+        self._turn_number = 0
+        self._first_turn = True
+
+    def reset(self) -> np.ndarray:
+        self._pieces[0] = {_rc_to_idx(r, c) for r, c in _P0_START}
+        self._pieces[1] = {_rc_to_idx(r, c) for r, c in _P1_START}
+        self._bobail = _rc_to_idx(*_BOBAIL_START)
+        self._current = 0
+        self._phase = PHASE_PIECE  # player 0's first turn skips bobail phase
+        self._done = False
+        self._turn_number = 0
+        self._first_turn = True
+        return self.state_description()
+
+    def step(self, action: int) -> tuple[np.ndarray, float, bool]:
+        from_cell = action // NUM_CELLS
+        to_cell = action % NUM_CELLS
+
+        if self._phase == PHASE_BOBAIL:
+            self._bobail = to_cell
+            self._phase = PHASE_PIECE
+
+            # Check if bobail reached current player's home row
+            br, _ = _idx_to_rc(self._bobail)
+            home_row = 4 if self._current == 0 else 0
+            if br == home_row:
+                self._done = True
+                return self.state_description(), 1.0, True
+
+            return self.state_description(), 0.0, False
+
+        # PHASE_PIECE
+        self._pieces[self._current].discard(from_cell)
+        self._pieces[self._current].add(to_cell)
+
+        if self._first_turn:
+            self._first_turn = False
+
+        # Switch to opponent
+        opponent = 1 - self._current
+        self._current = opponent
+        self._turn_number += 1
+
+        # Next turn starts with bobail phase
+        self._phase = PHASE_BOBAIL
+
+        # Check if opponent can move bobail
+        if not self._bobail_moves():
+            self._done = True
+            # Opponent (now current) cannot move bobail -> they lose
+            # Reward from perspective of the player who just acted (the previous player)
+            self._current = 1 - self._current  # switch back for state perspective
+            return self.state_description(), 1.0, True
+
+        return self.state_description(), 0.0, False
+
+    def available_actions(self) -> list[int]:
+        if self._done:
+            return []
+
+        if self._phase == PHASE_BOBAIL:
+            return self._bobail_moves()
+        return self._piece_moves()
+
+    def _bobail_moves(self) -> list[int]:
+        """Legal bobail moves: 1 step in any direction, blocked by pieces/edges."""
+        br, bc = _idx_to_rc(self._bobail)
+        occupied = self._pieces[0] | self._pieces[1]
+        moves = []
+        for dr, dc in DIRECTIONS:
+            nr, nc = br + dr, bc + dc
+            if _in_bounds(nr, nc):
+                target = _rc_to_idx(nr, nc)
+                if target not in occupied:
+                    moves.append(self._bobail * NUM_CELLS + target)
+        return moves
+
+    def _piece_moves(self) -> list[int]:
+        """Legal piece moves: slide as far as possible in one direction."""
+        occupied = self._pieces[0] | self._pieces[1] | {self._bobail}
+        moves = []
+        for cell in self._pieces[self._current]:
+            r, c = _idx_to_rc(cell)
+            for dr, dc in DIRECTIONS:
+                nr, nc = r + dr, c + dc
+                # Must move at least 1 cell
+                if not _in_bounds(nr, nc):
+                    continue
+                if _rc_to_idx(nr, nc) in occupied:
+                    continue
+                # Slide until blocked
+                while _in_bounds(nr + dr, nc + dc) and _rc_to_idx(nr + dr, nc + dc) not in occupied:
+                    nr += dr
+                    nc += dc
+                target = _rc_to_idx(nr, nc)
+                moves.append(cell * NUM_CELLS + target)
+        return moves
+
+    def state_description(self) -> np.ndarray:
+        """3 channels of 25: current player pieces, opponent pieces, bobail."""
+        my_pieces = np.zeros(NUM_CELLS, dtype=np.float32)
+        opp_pieces = np.zeros(NUM_CELLS, dtype=np.float32)
+        bobail = np.zeros(NUM_CELLS, dtype=np.float32)
+
+        for idx in self._pieces[self._current]:
+            my_pieces[idx] = 1.0
+        for idx in self._pieces[1 - self._current]:
+            opp_pieces[idx] = 1.0
+        bobail[self._bobail] = 1.0
+
+        return np.concatenate([my_pieces, opp_pieces, bobail])
+
+    def action_space_size(self) -> int:
+        return NUM_CELLS * NUM_CELLS  # 625
+
+    def state_space_size(self) -> int:
+        return NUM_CELLS * 3  # 75
+
+    def is_adversarial(self) -> bool:
+        return True
+
+    def current_player(self) -> int:
+        return self._current
+
+    def render_text(self) -> str:
+        lines = []
+        for r in range(BOARD_SIZE):
+            row = []
+            for c in range(BOARD_SIZE):
+                idx = _rc_to_idx(r, c)
+                if idx == self._bobail:
+                    row.append('B')
+                elif idx in self._pieces[0]:
+                    row.append('0')
+                elif idx in self._pieces[1]:
+                    row.append('1')
+                else:
+                    row.append('.')
+            lines.append(' '.join(row))
+        return '\n'.join(lines)
