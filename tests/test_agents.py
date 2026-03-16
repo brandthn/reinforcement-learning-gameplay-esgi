@@ -43,6 +43,24 @@ AGENT_TEST_PARAMS = {
         "hidden_layers": [16], "batch_size": 8,
         "buffer_capacity": 64, "target_update_freq": 10,
     },
+    "ddqn_er": {
+        "lr": 0.001, "gamma": 0.99,
+        "epsilon_start": 1.0, "epsilon_end": 0.01,
+        "epsilon_decay_steps": 100,
+        "hidden_layers": [16], "batch_size": 8,
+        "buffer_capacity": 64, "target_update_freq": 10,
+        "learning_starts": 16,
+    },
+    "ddqn_per": {
+        "lr": 0.001, "gamma": 0.99,
+        "epsilon_start": 1.0, "epsilon_end": 0.01,
+        "epsilon_decay_steps": 100,
+        "hidden_layers": [16], "batch_size": 8,
+        "buffer_capacity": 64, "target_update_freq": 10,
+        "per_alpha": 0.6, "per_beta_start": 0.4,
+        "per_beta_end": 1.0, "per_beta_steps": 200,
+        "learning_starts": 16,
+    },
 }
 
 ALL_ENVS = ["line_world", "grid_world", "tictactoe", "bobail"]
