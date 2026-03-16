@@ -17,6 +17,15 @@ from training.trainer import Trainer
 from training.self_play import SelfPlayTrainer
 
 
+def apply_quick_mode(config: dict, episodes: int = 1000):
+    """Override config for fast iteration: fewer episodes, single seed, dev results dir."""
+    config["training"]["num_episodes"] = episodes
+    config["seeds"] = [config.get("seed", 42)]
+    config.setdefault("eval", {})
+    config["eval"]["checkpoints"] = [episodes]
+    config["results_dir"] = "results_dev"
+
+
 def set_seed(seed: int):
     random.seed(seed)
     np.random.seed(seed)
@@ -84,10 +93,17 @@ def main():
     parser.add_argument("config", help="Path to YAML config file")
     parser.add_argument("--seed", type=int, default=None,
                         help="Override config seed")
+    parser.add_argument("--quick", action="store_true",
+                        help="Fast iteration mode: 1 seed, fewer episodes, writes to results_dev/")
+    parser.add_argument("--quick-episodes", type=int, default=1000,
+                        help="Number of episodes in --quick mode (default: 1000)")
     args = parser.parse_args()
 
     with open(args.config) as f:
         config = yaml.safe_load(f)
+
+    if args.quick:
+        apply_quick_mode(config, args.quick_episodes)
 
     if args.seed is not None:
         seeds = [args.seed]

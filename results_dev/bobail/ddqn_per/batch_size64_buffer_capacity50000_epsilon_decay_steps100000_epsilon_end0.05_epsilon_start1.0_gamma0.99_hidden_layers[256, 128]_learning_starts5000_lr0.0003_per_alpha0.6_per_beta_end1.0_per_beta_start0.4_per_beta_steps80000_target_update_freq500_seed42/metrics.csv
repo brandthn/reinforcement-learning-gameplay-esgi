@@ -1,0 +1,2 @@
+checkpoint,mean_reward,std_reward,mean_steps,std_steps,mean_action_time_ms,std_action_time_ms
+500,-0.76,0.6499230723708768,43.12,37.49594111367256,0.05019747056861811,0.06774650108989408

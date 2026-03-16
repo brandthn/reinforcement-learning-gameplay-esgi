@@ -4,11 +4,15 @@ Supports all 4 environments (LineWorld, GridWorld, TicTacToe, Bobail).
 Two modes: watch (AI vs AI) and play (human vs AI or human vs human).
 """
 
+import glob
+import os
+import re
 import sys
 import time
 
 import pygame
 import numpy as np
+import yaml
 
 from environments import ENV_REGISTRY, get_env
 from environments.bobail import BOARD_SIZE as BOBAIL_SIZE, PHASE_BOBAIL, _idx_to_rc, _rc_to_idx
@@ -34,6 +38,9 @@ CELL_HIGHLIGHT = (100, 200, 100, 120)
 WINDOW_W, WINDOW_H = 900, 700
 FPS = 60
 AI_STEP_DELAY_MS = 400
+
+AGENTS_WITHOUT_MODELS = {"random", "human"}
+MAX_MODEL_BUTTONS = 4
 
 
 def run():
@@ -94,6 +101,13 @@ class App:
         self.selected_agent0 = 0
         self.selected_agent1 = 0
 
+        # Model selections (index into model choices list)
+        self.selected_model0 = 0
+        self.selected_model1 = 0
+        self._model_scroll0 = 0
+        self._model_scroll1 = 0
+        self._cached_model_choices: dict[tuple, list] = {}
+
         # Game state
         self.game_state = None
         self.done = False
@@ -129,107 +143,364 @@ class App:
 
     # --- Menu ---
 
+    def _build_model_row(self, buttons, cx: int, y: int, prefix: str,
+                         choices: list, selected: int, scroll: int) -> int:
+        """Add model selector buttons to the buttons dict. Returns updated y."""
+        buttons[f"_{prefix}_label_y"] = y
+        y += 25
+
+        if not choices:
+            buttons[f"_{prefix}_no_models_y"] = y
+            y += 35
+            return y
+
+        n_total = len(choices)
+        n_visible = min(n_total, MAX_MODEL_BUTTONS)
+        btn_w = 90
+        gap = 5
+        arrow_w = 25
+        has_left = scroll > 0
+        has_right = scroll + MAX_MODEL_BUTTONS < n_total
+
+        total_w = n_visible * btn_w + max(0, n_visible - 1) * gap
+        if has_left:
+            total_w += arrow_w + gap
+        if has_right:
+            total_w += arrow_w + gap
+
+        x = cx - total_w // 2
+
+        if has_left:
+            r = pygame.Rect(x, y, arrow_w, 28)
+            buttons[f"{prefix}_left"] = Button(r, "<", self.font_sm, color=DARK_GRAY)
+            x += arrow_w + gap
+
+        for i in range(n_visible):
+            idx = scroll + i
+            if idx >= n_total:
+                break
+            label = choices[idx][0]
+            r = pygame.Rect(x, y, btn_w, 28)
+            color = GREEN if idx == selected else DARK_GRAY
+            buttons[f"{prefix}_{i}"] = Button(r, label, self.font_sm, color=color)
+            x += btn_w + gap
+
+        if has_right:
+            r = pygame.Rect(x, y, arrow_w, 28)
+            buttons[f"{prefix}_right"] = Button(r, ">", self.font_sm, color=DARK_GRAY)
+
+        y += 38
+        return y
+
     def _build_menu_buttons(self):
         """Rebuild menu buttons (called each frame for simplicity)."""
         buttons = {}
         cx = WINDOW_W // 2
         y = 80
 
-        # Title
         buttons["_title_y"] = y
         y += 60
 
         # Env selector
         buttons["_env_label_y"] = y
         y += 30
-        for i, name in enumerate(self.env_choices):
-            r = pygame.Rect(cx - 150 + i * 80, y, 70, 32)
-            color = GREEN if i == self.selected_env else DARK_GRAY
-            buttons[f"env_{i}"] = Button(r, name.split("_")[-1] if "_" not in name else name.replace("_", " ").title(),
-                                         self.font_sm, color=color)
-        # Shorten labels
         short_env = ["Line", "Grid", "TicTac", "Bobail"]
         for i, label in enumerate(short_env):
             r = pygame.Rect(cx - 180 + i * 95, y, 85, 32)
             color = GREEN if i == self.selected_env else DARK_GRAY
             buttons[f"env_{i}"] = Button(r, label, self.font_sm, color=color)
-        y += 55
+        y += 50
+
+        env_name = self.env_choices[self.selected_env]
+        test_env = get_env(env_name)
 
         # Agent 0 selector
         buttons["_agent0_label_y"] = y
-        y += 30
+        y += 28
+        n_agents = len(self.agent_choices)
+        agent_btn_w = 85
+        agent_gap = 5
+        agent_total_w = n_agents * agent_btn_w + (n_agents - 1) * agent_gap
+        agent_x = cx - agent_total_w // 2
         for i, name in enumerate(self.agent_choices):
-            r = pygame.Rect(cx - 100 + i * 110, y, 100, 32)
+            r = pygame.Rect(agent_x + i * (agent_btn_w + agent_gap), y,
+                            agent_btn_w, 28)
             color = GREEN if i == self.selected_agent0 else DARK_GRAY
-            buttons[f"agent0_{i}"] = Button(r, name.title(), self.font_sm, color=color)
-        y += 55
+            buttons[f"agent0_{i}"] = Button(r, name, self.font_sm, color=color)
+        y += 40
 
-        # Agent 1 selector (only for adversarial envs)
-        env_name = self.env_choices[self.selected_env]
-        test_env = get_env(env_name)
+        # Model 0 selector
+        a0_name = self.agent_choices[self.selected_agent0]
+        if self._agent_needs_model(a0_name):
+            choices0 = self._get_model_choices(a0_name, env_name)
+            y = self._build_model_row(buttons, cx, y, "model0",
+                                      choices0, self.selected_model0,
+                                      self._model_scroll0)
+
+        # Agent 1 + Model 1 (adversarial only)
         if test_env.is_adversarial():
             buttons["_agent1_label_y"] = y
-            y += 30
+            y += 28
             for i, name in enumerate(self.agent_choices):
-                r = pygame.Rect(cx - 100 + i * 110, y, 100, 32)
+                r = pygame.Rect(agent_x + i * (agent_btn_w + agent_gap), y,
+                                agent_btn_w, 28)
                 color = GREEN if i == self.selected_agent1 else DARK_GRAY
-                buttons[f"agent1_{i}"] = Button(r, name.title(), self.font_sm, color=color)
-            y += 55
+                buttons[f"agent1_{i}"] = Button(r, name, self.font_sm, color=color)
+            y += 40
+
+            a1_name = self.agent_choices[self.selected_agent1]
+            if self._agent_needs_model(a1_name):
+                choices1 = self._get_model_choices(a1_name, env_name)
+                y = self._build_model_row(buttons, cx, y, "model1",
+                                          choices1, self.selected_model1,
+                                          self._model_scroll1)
 
         # Start button
+        can_start = self._can_start()
+        start_color = ACCENT if can_start else DARK_GRAY
         buttons["start"] = Button(
-            pygame.Rect(cx - 80, y + 10, 160, 45), "Start", self.font_lg, color=ACCENT)
+            pygame.Rect(cx - 80, y + 10, 160, 45), "Start", self.font_lg,
+            color=start_color)
 
         return buttons
 
     def _draw_menu(self, mouse_pos):
         self._menu_buttons = self._build_menu_buttons()
+        btns = self._menu_buttons
         cx = WINDOW_W // 2
 
         title = self.font_lg.render("Deep RL — Game GUI", True, WHITE)
-        self.screen.blit(title, title.get_rect(center=(cx, self._menu_buttons["_title_y"])))
+        self.screen.blit(title, title.get_rect(center=(cx, btns["_title_y"])))
 
         env_label = self.font_md.render("Environment", True, GRAY)
-        self.screen.blit(env_label, env_label.get_rect(center=(cx, self._menu_buttons["_env_label_y"])))
+        self.screen.blit(env_label, env_label.get_rect(center=(cx, btns["_env_label_y"])))
 
         a0_label = self.font_md.render("Agent (Player 1)", True, GRAY)
-        self.screen.blit(a0_label, a0_label.get_rect(center=(cx, self._menu_buttons["_agent0_label_y"])))
+        self.screen.blit(a0_label, a0_label.get_rect(center=(cx, btns["_agent0_label_y"])))
 
-        if "_agent1_label_y" in self._menu_buttons:
+        if "_model0_label_y" in btns:
+            txt = self.font_sm.render("Model (P1)", True, GRAY)
+            self.screen.blit(txt, txt.get_rect(center=(cx, btns["_model0_label_y"])))
+        if "_model0_no_models_y" in btns:
+            txt = self.font_sm.render("No trained models", True, RED)
+            self.screen.blit(txt, txt.get_rect(center=(cx, btns["_model0_no_models_y"])))
+
+        if "_agent1_label_y" in btns:
             a1_label = self.font_md.render("Agent (Player 2)", True, GRAY)
-            self.screen.blit(a1_label, a1_label.get_rect(center=(cx, self._menu_buttons["_agent1_label_y"])))
+            self.screen.blit(a1_label, a1_label.get_rect(center=(cx, btns["_agent1_label_y"])))
 
-        for key, val in self._menu_buttons.items():
+        if "_model1_label_y" in btns:
+            txt = self.font_sm.render("Model (P2)", True, GRAY)
+            self.screen.blit(txt, txt.get_rect(center=(cx, btns["_model1_label_y"])))
+        if "_model1_no_models_y" in btns:
+            txt = self.font_sm.render("No trained models", True, RED)
+            self.screen.blit(txt, txt.get_rect(center=(cx, btns["_model1_no_models_y"])))
+
+        for key, val in btns.items():
             if isinstance(val, Button):
                 val.draw(self.screen, mouse_pos)
 
+    def _handle_model_click(self, key: str, prefix: str, agent_name: str,
+                            env_name: str):
+        """Handle clicks on model selector buttons."""
+        suffix = key[len(prefix) + 1:]
+        if suffix == "left":
+            if prefix == "model0":
+                self._model_scroll0 = max(0, self._model_scroll0 - 1)
+            else:
+                self._model_scroll1 = max(0, self._model_scroll1 - 1)
+        elif suffix == "right":
+            choices = self._get_model_choices(agent_name, env_name)
+            max_scroll = max(0, len(choices) - MAX_MODEL_BUTTONS)
+            if prefix == "model0":
+                self._model_scroll0 = min(self._model_scroll0 + 1, max_scroll)
+            else:
+                self._model_scroll1 = min(self._model_scroll1 + 1, max_scroll)
+        else:
+            vis_idx = int(suffix)
+            scroll = self._model_scroll0 if prefix == "model0" else self._model_scroll1
+            if prefix == "model0":
+                self.selected_model0 = scroll + vis_idx
+            else:
+                self.selected_model1 = scroll + vis_idx
+
     def _handle_menu_click(self, mouse_pos):
         btns = self._menu_buttons
+        env_name = self.env_choices[self.selected_env]
+
         for key, val in btns.items():
             if not isinstance(val, Button):
                 continue
             if not val.clicked(mouse_pos):
                 continue
+
             if key.startswith("env_"):
-                self.selected_env = int(key.split("_")[1])
+                new_idx = int(key.split("_")[1])
+                if new_idx != self.selected_env:
+                    self.selected_env = new_idx
+                    self.selected_model0 = 0
+                    self.selected_model1 = 0
+                    self._model_scroll0 = 0
+                    self._model_scroll1 = 0
+
             elif key.startswith("agent0_"):
-                self.selected_agent0 = int(key.split("_")[1])
+                new_idx = int(key.split("_")[1])
+                if new_idx != self.selected_agent0:
+                    self.selected_agent0 = new_idx
+                    self.selected_model0 = 0
+                    self._model_scroll0 = 0
+
             elif key.startswith("agent1_"):
-                self.selected_agent1 = int(key.split("_")[1])
+                new_idx = int(key.split("_")[1])
+                if new_idx != self.selected_agent1:
+                    self.selected_agent1 = new_idx
+                    self.selected_model1 = 0
+                    self._model_scroll1 = 0
+
+            elif key.startswith("model0_"):
+                a0_name = self.agent_choices[self.selected_agent0]
+                self._handle_model_click(key, "model0", a0_name, env_name)
+
+            elif key.startswith("model1_"):
+                a1_name = self.agent_choices[self.selected_agent1]
+                self._handle_model_click(key, "model1", a1_name, env_name)
+
             elif key == "start":
-                self._start_game()
+                if self._can_start():
+                    self._start_game()
+
+    # --- Model discovery ---
+
+    @staticmethod
+    def _agent_needs_model(agent_name: str) -> bool:
+        return agent_name not in AGENTS_WITHOUT_MODELS
+
+    def _scan_models(self, agent_name: str, env_name: str) -> list[tuple[str, str]]:
+        """Return [(label, run_dir_path), ...] for available trained models."""
+        agent_dir = os.path.join("results", env_name, agent_name)
+        if not os.path.isdir(agent_dir):
+            return []
+
+        choices = []
+
+        best_dir = os.path.join(agent_dir, "best")
+        if os.path.isdir(best_dir) and (
+            os.path.isfile(os.path.join(best_dir, "model.pt"))
+            or glob.glob(os.path.join(glob.escape(best_dir), "model_*.pt"))
+        ):
+            choices.append(("Best", best_dir))
+
+        runs = []
+        for entry in sorted(os.listdir(agent_dir)):
+            if entry == "best":
+                continue
+            run_dir = os.path.join(agent_dir, entry)
+            if not os.path.isdir(run_dir):
+                continue
+            if not glob.glob(os.path.join(glob.escape(run_dir), "model_*.pt")):
+                continue
+            m = re.search(r"_seed(\d+)$", entry)
+            seed = m.group(1) if m else "?"
+            param_prefix = entry[: entry.rfind("_seed")] if m else entry
+            runs.append((seed, param_prefix, run_dir))
+
+        param_groups = sorted(set(r[1] for r in runs))
+        multi_config = len(param_groups) > 1
+        group_map = {p: i + 1 for i, p in enumerate(param_groups)}
+
+        for seed, prefix, run_dir in runs:
+            if multi_config:
+                label = f"cfg{group_map[prefix]} s{seed}"
+            else:
+                label = f"seed {seed}"
+            choices.append((label, run_dir))
+
+        return choices
+
+    def _get_model_choices(self, agent_name: str, env_name: str) -> list[tuple[str, str]]:
+        key = (env_name, agent_name)
+        if key not in self._cached_model_choices:
+            self._cached_model_choices[key] = self._scan_models(agent_name, env_name)
+        return self._cached_model_choices[key]
+
+    @staticmethod
+    def _find_model_in_dir(run_dir: str) -> str | None:
+        """Find model file: model.pt (best/) or latest model_{N}.pt."""
+        model_pt = os.path.join(run_dir, "model.pt")
+        if os.path.isfile(model_pt):
+            return model_pt
+        best_path = None
+        best_cp = -1
+        for path in glob.glob(os.path.join(glob.escape(run_dir), "model_*.pt")):
+            fname = os.path.basename(path)
+            try:
+                cp = int(fname.replace("model_", "").replace(".pt", ""))
+            except ValueError:
+                continue
+            if cp > best_cp:
+                best_cp = cp
+                best_path = path
+        return best_path
+
+    def _create_agent_for_play(self, agent_name: str, run_dir: str | None, env):
+        """Instantiate an agent, loading config and model from a results run dir."""
+        if run_dir is None:
+            return get_agent(agent_name, env)
+
+        config_path = os.path.join(run_dir, "config.yaml")
+        with open(config_path) as f:
+            cfg = yaml.safe_load(f)
+        agent_params = cfg.get("agent_params", {})
+
+        agent = get_agent(agent_name, env, agent_params)
+
+        model_path = self._find_model_in_dir(run_dir)
+        if model_path:
+            agent.load(model_path)
+            print(f"[GUI] Loaded: {model_path}")
+
+        return agent
+
+    def _can_start(self) -> bool:
+        env_name = self.env_choices[self.selected_env]
+        a0_name = self.agent_choices[self.selected_agent0]
+        if self._agent_needs_model(a0_name):
+            if not self._get_model_choices(a0_name, env_name):
+                return False
+        test_env = get_env(env_name)
+        if test_env.is_adversarial():
+            a1_name = self.agent_choices[self.selected_agent1]
+            if self._agent_needs_model(a1_name):
+                if not self._get_model_choices(a1_name, env_name):
+                    return False
+        return True
+
+    def _resolve_run_dir(self, agent_name: str, env_name: str,
+                         selected_idx: int) -> str | None:
+        """Get the run_dir for a model-based agent, or None."""
+        if not self._agent_needs_model(agent_name):
+            return None
+        choices = self._get_model_choices(agent_name, env_name)
+        if not choices:
+            return None
+        idx = min(selected_idx, len(choices) - 1)
+        return choices[idx][1]
 
     def _start_game(self):
         self.env_name = self.env_choices[self.selected_env]
         self.env = get_env(self.env_name)
 
         a0_name = self.agent_choices[self.selected_agent0]
-        agent0 = get_agent(a0_name, self.env)
+        run_dir0 = self._resolve_run_dir(a0_name, self.env_name,
+                                         self.selected_model0)
+        agent0 = self._create_agent_for_play(a0_name, run_dir0, self.env)
         self.agent_names = [a0_name]
 
         if self.env.is_adversarial():
             a1_name = self.agent_choices[self.selected_agent1]
-            agent1 = get_agent(a1_name, self.env)
+            run_dir1 = self._resolve_run_dir(a1_name, self.env_name,
+                                             self.selected_model1)
+            agent1 = self._create_agent_for_play(a1_name, run_dir1, self.env)
             self.agents = [agent0, agent1]
             self.agent_names.append(a1_name)
         else:
