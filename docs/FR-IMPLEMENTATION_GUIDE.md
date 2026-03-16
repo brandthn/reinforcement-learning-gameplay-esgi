@@ -1,8 +1,8 @@
 # Guide d'Implémentation — Projet Deep Reinforcement Learning
 
-> **Objectif de ce document :** Référence partagée pour tous les contributeurs (humains ou assistés par IA) de ce projet. Il documente les décisions architecturales convenues, les conventions à suivre, et les limites entre ce qui est décidé et ce qui reste ouvert. **Si quelque chose n'est pas indiqué ici, ce n'est pas encore décidé — ne pas inventer de contraintes.**
+> **Objectif de ce document :** Référence partagée pour tous les membres et contributeurs de ce projet. Il documente les décisions architecturales convenues, les conventions à suivre, et les limites entre ce qui est décidé et ce qui reste ouvert. **Si quelque chose n'est pas indiqué ici, ce n'est pas encore décidé — ne pas inventer de contraintes.**
 
-> **Ce que ce document N'EST PAS :** Ce n'est pas le syllabus du professeur (voir `docs/PROJECT_INSTRUCTIONS.md`). Ce n'est pas un suivi de deadlines. C'est le contrat d'ingénierie et de conception.
+> **Ce que ce document N'EST PAS :** Ce n'est pas le syllabus du professeur (voir `docs/PROJECT_INSTRUCTIONS.md`). C'est le contrat d'ingénierie et de conception.
 
 ---
 
@@ -88,10 +88,7 @@ drl-project/
 │   ├── ddqn_er/
 │   └── ddqn_per/
 │
-├── models/                      # Checkpoints .pt sauvegardés (gitignored)
-│   └── .gitkeep
-│
-├── results/                     # CSV de métriques, courbes d'entraînement (gitignored)
+├── results/                     # CSV de métriques, courbes d'entraînement, checkpoints modèles (gitignored)
 │   └── .gitkeep
 │
 ├── notebooks/                   # À créer : visualisation et analyse des résultats

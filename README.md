@@ -1,30 +1,30 @@
-# DRL Project -- Training & Experimentation Guide
+# Projet DRL — Guide d'Entraînement & Expérimentation
 
-## Setup
+## Installation
 
 ```bash
 uv sync
 ```
 
-This installs all dependencies (`torch`, `numpy`, `pygame`, `pyyaml`) from `pyproject.toml` into an isolated virtual environment managed by `uv`.
+Cela installe toutes les dépendances (`torch`, `numpy`, `pygame`, `pyyaml`) depuis `pyproject.toml` dans un environnement virtuel isolé géré par `uv`.
 
 ---
 
-## Quick Start
+## Démarrage Rapide
 
-Train a single experiment:
+Entraîner une seule expérience :
 
 ```bash
 uv run python scripts/train.py configs/dqn/grid_world.yaml
 ```
 
-Train all experiments for one agent:
+Entraîner toutes les expériences d'un agent :
 
 ```bash
 uv run python scripts/train_all.py configs/dqn/
 ```
 
-Train everything:
+Tout entraîner :
 
 ```bash
 uv run python scripts/train_all.py
@@ -32,21 +32,23 @@ uv run python scripts/train_all.py
 
 ---
 
-## Available Agents and Environments
+## Agents et Environnements Disponibles
 
-**Agents:** `random`, `tabular_q`, `dqn`, `ddqn`, `ddqn_er`, `ddqn_per`
+**Agents implémentés :** `random`, `tabular_q`, `dqn`, `ddqn`, `ddqn_er`, `ddqn_per`
 
-**Environments:** `line_world`, `grid_world`, `tictactoe`, `bobail`
+**Agents à implémenter :** REINFORCE (3 variantes), PPO, RandomRollout, MCTS, Expert Apprentice, AlphaZero, MuZero (+stochastique)
 
-`line_world` and `grid_world` are single-player. `tictactoe` and `bobail` are adversarial (require an `opponent` field in the config).
+**Environnements :** `line_world`, `grid_world`, `tictactoe`, `bobail`
+
+`line_world` et `grid_world` sont mono-joueur. `tictactoe` et `bobail` sont adversariaux (nécessitent un champ `opponent` dans la config).
 
 ---
 
-## Config Files
+## Fichiers de Configuration
 
 ### Structure
 
-Each YAML file defines one experiment (one agent, one environment, one set of hyperparameters). Configs are organized by agent:
+Chaque fichier YAML définit une expérience (un agent, un environnement, un jeu d'hyperparamètres). Les configs sont organisées par agent :
 
 ```
 configs/
@@ -59,16 +61,16 @@ configs/
 │   └── ...
 ├── dqn/
 │   ├── grid_world.yaml          # baseline
-│   ├── grid_world_lr0005.yaml   # hyperparameter variant
+│   ├── grid_world_lr0005.yaml   # variante d'hyperparamètre
 │   └── ...
 ├── ddqn/
 ├── ddqn_er/
 └── ddqn_per/
 ```
 
-To add a hyperparameter variant (e.g. a different learning rate), copy the baseline config, change the value, and save it in the same agent folder. Each file runs as a separate experiment with its own results directory.
+Pour ajouter une variante d'hyperparamètre (ex: un learning rate différent), copier la config de base, modifier la valeur, et sauvegarder dans le même dossier agent. Chaque fichier s'exécute comme une expérience séparée avec son propre dossier de résultats.
 
-### Example: `configs/dqn/grid_world.yaml`
+### Exemple : `configs/dqn/grid_world.yaml`
 
 ```yaml
 env: grid_world
@@ -96,51 +98,51 @@ eval:
 seeds: [42, 123, 456]
 ```
 
-Field by field:
+Champ par champ :
 
-| Field | Description |
+| Champ | Description |
 |---|---|
-| `env` | Environment name (must match a key in `ENV_REGISTRY`) |
-| `agent` | Agent name (must match a key in `AGENT_REGISTRY`) |
-| `opponent` | For adversarial envs only. Agent used as opponent (e.g. `random`) |
-| `agent_params` | All hyperparameters passed to the agent constructor. Varies by agent (see below) |
-| `training.num_episodes` | Total training episodes |
-| `training.max_steps_per_episode` | Episode truncation limit (default: 1000) |
-| `eval.checkpoints` | Episode numbers at which to evaluate the frozen policy and save the model |
-| `eval.num_games` | Number of evaluation games per checkpoint |
-| `seeds` | List of seeds. The full training runs once per seed |
-| `seed` | Alternative to `seeds` for a single seed |
+| `env` | Nom de l'environnement (doit correspondre à une clé dans `ENV_REGISTRY`) |
+| `agent` | Nom de l'agent (doit correspondre à une clé dans `AGENT_REGISTRY`) |
+| `opponent` | Pour les envs adversariaux uniquement. Agent utilisé comme adversaire (ex: `random`) |
+| `agent_params` | Tous les hyperparamètres passés au constructeur de l'agent. Varient selon l'agent (voir ci-dessous) |
+| `training.num_episodes` | Nombre total d'épisodes d'entraînement |
+| `training.max_steps_per_episode` | Limite de troncature d'épisode (défaut : 1000) |
+| `eval.checkpoints` | Numéros d'épisodes auxquels évaluer la policy gelée et sauvegarder le modèle |
+| `eval.num_games` | Nombre de parties d'évaluation par checkpoint |
+| `seeds` | Liste de graines. L'entraînement complet est lancé une fois par graine |
+| `seed` | Alternative à `seeds` pour une graine unique |
 
-### Agent parameters reference
+### Référence des paramètres par agent
 
-| Parameter | Agents | Description |
+| Paramètre | Agents | Description |
 |---|---|---|
-| `lr` | `tabular_q`, `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Learning rate |
-| `gamma` | all learning agents | Discount factor |
-| `epsilon_start` | all learning agents | Initial exploration rate |
-| `epsilon_end` | all learning agents | Final exploration rate |
-| `epsilon_decay_steps` | all learning agents | Steps for linear epsilon decay |
-| `hidden_layers` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Network hidden layer sizes (e.g. `[128, 128]`) |
-| `batch_size` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Minibatch size for replay sampling |
-| `buffer_capacity` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Max transitions in replay buffer |
-| `target_update_freq` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Copy online network to target network every N episodes |
-| `learning_starts` | `ddqn_er`, `ddqn_per` | Min buffer samples before training begins |
-| `per_alpha` | `ddqn_per` | PER prioritization exponent |
-| `per_beta_start` | `ddqn_per` | Initial importance-sampling correction |
-| `per_beta_end` | `ddqn_per` | Final IS correction |
-| `per_beta_steps` | `ddqn_per` | Steps for linear beta annealing |
+| `lr` | `tabular_q`, `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Taux d'apprentissage |
+| `gamma` | tous les agents apprenants | Facteur d'escompte |
+| `epsilon_start` | tous les agents apprenants | Taux d'exploration initial |
+| `epsilon_end` | tous les agents apprenants | Taux d'exploration final |
+| `epsilon_decay_steps` | tous les agents apprenants | Steps pour la décroissance linéaire d'epsilon |
+| `hidden_layers` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Tailles des couches cachées (ex: `[128, 128]`) |
+| `batch_size` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Taille du minibatch pour l'échantillonnage du replay |
+| `buffer_capacity` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Max de transitions dans le replay buffer |
+| `target_update_freq` | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | Copier le réseau online vers le réseau target toutes les N épisodes |
+| `learning_starts` | `ddqn_er`, `ddqn_per` | Min d'échantillons dans le buffer avant de commencer l'entraînement |
+| `per_alpha` | `ddqn_per` | Exposant de priorisation PER |
+| `per_beta_start` | `ddqn_per` | Correction IS initiale |
+| `per_beta_end` | `ddqn_per` | Correction IS finale |
+| `per_beta_steps` | `ddqn_per` | Steps pour le scheduling linéaire de beta |
 
 ---
 
-## Running Experiments
+## Lancer les Expériences
 
-### Train a single config
+### Entraîner une seule config
 
 ```bash
 uv run python scripts/train.py configs/ddqn_per/tictactoe.yaml
 ```
 
-This trains `ddqn_per` on `tictactoe` for 100k episodes, once per seed in the config (e.g. seeds 42, 123, 456 = 3 runs). Results go to:
+Cela entraîne `ddqn_per` sur `tictactoe` pour 100k épisodes, une fois par graine dans la config (ex: graines 42, 123, 456 = 3 runs). Résultats dans :
 
 ```
 results/tictactoe/ddqn_per/..._seed42/
@@ -148,91 +150,100 @@ results/tictactoe/ddqn_per/..._seed123/
 results/tictactoe/ddqn_per/..._seed456/
 ```
 
-### Override the seed
+### Remplacer la graine
 
 ```bash
 uv run python scripts/train.py configs/dqn/grid_world.yaml --seed 99
 ```
 
-Ignores the seeds in the config. Runs only once with seed 99.
+Ignore les graines de la config. Lance une seule fois avec la graine 99.
 
-### Train all configs for one agent
+### Mode rapide (développement)
+
+```bash
+uv run python scripts/train.py configs/dqn/grid_world.yaml --quick
+uv run python scripts/train.py configs/dqn/grid_world.yaml --quick --quick-episodes 500
+```
+
+Mode itération rapide : 1 graine, moins d'épisodes (défaut 1000), résultats dans `results_dev/`.
+
+### Entraîner toutes les configs d'un agent
 
 ```bash
 uv run python scripts/train_all.py configs/dqn/
 ```
 
-Runs `scripts/train.py` sequentially on every `.yaml` in `configs/dqn/`.
+Lance `scripts/train.py` séquentiellement sur chaque `.yaml` dans `configs/dqn/`.
 
-### Train all configs in the project
+### Entraîner toutes les configs du projet
 
 ```bash
 uv run python scripts/train_all.py
 ```
 
-Recursively finds all `.yaml` files under `configs/` and trains each one.
+Trouve récursivement tous les fichiers `.yaml` sous `configs/` et entraîne chacun. Détecte automatiquement les configs sweep et les route vers `train_sweep.py`.
 
-### Re-evaluate saved models
+### Réévaluer les modèles sauvegardés
 
 ```bash
 uv run python scripts/evaluate_all.py
 uv run python scripts/evaluate_all.py --results-dir results --num-games 200
 ```
 
-Walks every experiment in `results/`, loads each saved checkpoint, re-evaluates with frozen policy, and writes `metrics_reeval.csv`.
+Parcourt chaque expérience dans `results/`, charge chaque checkpoint sauvegardé, réévalue avec la policy gelée, et écrit `metrics_reeval.csv`.
 
-### Promote best models for the GUI
+### Promouvoir les meilleurs modèles pour la GUI
 
-After training, promote the best checkpoint per agent/env to `results/{env}/{agent}/best/`:
+Après l'entraînement, promouvoir le meilleur checkpoint par combo agent/env vers `results/{env}/{agent}/best/` :
 
 ```bash
 uv run scripts/promote_best.py --all
 ```
 
-Or target a specific combo:
+Ou cibler une combinaison spécifique :
 
 ```bash
 uv run scripts/promote_best.py --env line_world --agent dqn
 ```
 
-Or promote a specific run/checkpoint manually:
+Ou promouvoir un run/checkpoint spécifique manuellement :
 
 ```bash
 uv run scripts/promote_best.py --run results/line_world/dqn/..._seed42/ --checkpoint 100000
 ```
 
-The GUI loads from `best/` by default. A model picker in the menu also lets you select any trained run.
+La GUI charge depuis `best/` par défaut. Un sélecteur de modèle dans le menu permet aussi de choisir n'importe quel run entraîné.
 
-### Run the GUI
+### Lancer la GUI
 
 ```bash
 uv run scripts/run_gui.py
 ```
 
-Select environment, agent, and model (if applicable), then click Start.
+Sélectionner l'environnement, l'agent et le modèle (si applicable), puis cliquer Start.
 
 ---
 
-## Output Structure
+## Structure des Sorties
 
-Each training run writes to `results/{env}/{agent}/{params}_seed{N}/`:
+Chaque run d'entraînement écrit dans `results/{env}/{agent}/{params}_seed{N}/` :
 
-| File | Content |
+| Fichier | Contenu |
 |---|---|
-| `config.yaml` | Exact config used (snapshot for reproducibility) |
-| `training_curve.csv` | Per-episode: `episode, reward, steps` |
-| `metrics.csv` | Per-checkpoint: `mean_reward, std_reward, mean_steps, std_steps, mean_action_time_ms, std_action_time_ms` |
-| `model_{N}.pt` | Saved model at episode N |
+| `config.yaml` | Config exacte utilisée (snapshot pour la reproductibilité) |
+| `training_curve.csv` | Par épisode : `episode, reward, steps` |
+| `metrics.csv` | Par checkpoint : `mean_reward, std_reward, mean_steps, std_steps, mean_action_time_ms, std_action_time_ms` |
+| `model_{N}.pt` | Modèle sauvegardé à l'épisode N |
 
-The `metrics.csv` contains **evaluation** metrics (frozen policy, no exploration), not training metrics. This is what the syllabus requires.
+Le `metrics.csv` contient les métriques d'**évaluation** (policy gelée, pas d'exploration), pas les métriques d'entraînement. C'est ce que le syllabus exige.
 
 ---
 
-## Hyperparameter Sweeps
+## Sweeps d'Hyperparamètres
 
-For comparing multiple values of a hyperparameter, use a **sweep config** with `scripts/train_sweep.py`. A sweep config is a normal config with an extra `sweep:` section that declares axes of variation.
+Pour comparer plusieurs valeurs d'un hyperparamètre, utiliser une **config sweep** avec `scripts/train_sweep.py`. Une config sweep est une config normale avec une section `sweep:` supplémentaire qui déclare des axes de variation.
 
-### Example: `configs/dqn/grid_world_sweep.yaml`
+### Exemple : `configs/dqn/grid_world_sweep.yaml`
 
 ```yaml
 env: grid_world
@@ -264,33 +275,33 @@ eval:
 seeds: [42, 123, 456]
 ```
 
-The `sweep:` section uses dot-notation keys. Each key maps to a list of values to try. The script computes the cartesian product: here 3 lr values x 2 batch sizes = 6 experiments, each run with 3 seeds = 18 total training runs.
+La section `sweep:` utilise des clés en notation pointée. Chaque clé correspond à une liste de valeurs à tester. Le script calcule le produit cartésien : ici 3 valeurs de lr × 2 tailles de batch = 6 expériences, chacune lancée avec 3 graines = 18 runs au total.
 
-### Running a sweep
+### Lancer un sweep
 
-Preview what will run (no training):
+Prévisualiser ce qui sera lancé (pas d'entraînement) :
 
 ```bash
 uv run python scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml --dry-run
 ```
 
-Run the full sweep:
+Lancer le sweep complet :
 
 ```bash
 uv run python scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml
 ```
 
-Override the seed:
+Remplacer la graine :
 
 ```bash
 uv run python scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml --seed 99
 ```
 
-Under the hood, each combination is a concrete config passed to the same `train_single()` function used by `scripts/train.py`. Results land in separate directories (the folder name encodes all parameters). The `config.yaml` snapshot in each results directory is the concrete, expanded version -- not the sweep file.
+En interne, chaque combinaison est une config concrète passée à la même fonction `train_single()` utilisée par `scripts/train.py`. Les résultats atterrissent dans des dossiers séparés (le nom du dossier encode tous les paramètres). Le snapshot `config.yaml` dans chaque dossier de résultats est la version concrète expansée — pas le fichier sweep.
 
-### Manual approach
+### Approche manuelle
 
-You can still create individual config files for single experiments. Copy the baseline, change one value, train with `train.py` or `train_all.py`. One config = one experiment remains the invariant at execution time.
+Vous pouvez toujours créer des fichiers de config individuels pour des expériences isolées. Copier la baseline, changer une valeur, entraîner avec `train.py` ou `train_all.py`. L'invariant une-config-une-expérience est maintenu au moment de l'exécution.
 
 ---
 
@@ -299,3 +310,5 @@ You can still create individual config files for single experiments. Copy the ba
 ```bash
 uv run pytest
 ```
+
+Les tests vérifient la conformité des environnements (interface, terminaison) et le bon fonctionnement des agents (actions légales, save/load).

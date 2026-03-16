@@ -90,10 +90,7 @@ aidrl-project/
 │   ├── ddqn_per/
 │   └── tabular_q/
 │
-├── models/                      # Saved .pt checkpoints (gitignored)
-│   └── .gitkeep
-│
-├── results/                     # Metrics CSVs, training curves (gitignored)
+├── results/                     # Metrics CSVs, training curves, model checkpoints (gitignored)
 │   └── .gitkeep
 │
 ├── notebooks/
