@@ -1,0 +1,12 @@
+agent: random
+env: line_world
+eval:
+  checkpoints:
+  - 100
+  - 500
+  - 1000
+  num_games: 50
+seed: 42
+training:
+  max_steps_per_episode: 100
+  num_episodes: 1000
