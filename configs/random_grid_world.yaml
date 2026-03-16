@@ -1,0 +1,12 @@
+env: grid_world
+agent: random
+
+training:
+  num_episodes: 1000
+  max_steps_per_episode: 500
+
+eval:
+  checkpoints: [100, 500, 1000]
+  num_games: 50
+
+seed: 42

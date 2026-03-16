@@ -6,6 +6,8 @@ dist/
 wheels/
 *.egg-info
 
+docs/
+
 # Virtual environments
 .venv
 
@@ -25,5 +27,4 @@ Thumbs.db
 # uv
 uv.lock
 
-tests/
 .pytest_cache/

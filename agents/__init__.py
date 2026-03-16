@@ -1,9 +1,15 @@
 from .random_agent import RandomAgent
 from .human_agent import HumanAgent
+from .tabular_q import TabularQAgent
+from .value_based.dqn import DQNAgent
+from .value_based.ddqn import DDQNAgent
 
 AGENT_REGISTRY = {
     "random": RandomAgent,
     "human": HumanAgent,
+    "tabular_q": TabularQAgent,
+    "dqn": DQNAgent,
+    "ddqn": DDQNAgent,
 }
 
 
