@@ -4,7 +4,7 @@
 
 > **Purpose of this document:** This is the shared reference for all members and contributors implementing this project. It documents the architectural decisions we have explicitly agreed on, the conventions to follow, and the boundaries of what has been decided vs. what remains open. **If something is not stated here, it is not yet decided — do not assume or invent constraints.**
 
-> **What this document is NOT:** This is not the project syllabus (see professor's instructions separately in file `docs/PROJECT_INSTRUCTIONS.md`). This is not a deadline tracker. This is the engineering and design contract.
+> **What this document is NOT:** This is not the project syllabus (see professor's instructions separately in file `docs/PROJECT_INSTRUCTIONS.md`). This is the engineering and design contract.
 
 ---
 
@@ -16,7 +16,8 @@
 
 **Framework:** PyTorch (all neural network code)
 
-**Language convention:** Code (variable names, comments, docstrings) in English. Documentation files in `docs/` in French. Comment factually, not generic verbose as LLM do. Factual, simple and clear.
+**Language convention:** Executed Code (variables and function names) in English. Comments, docstrings : French.
+Documentation files in `docs/` in French. Comment factually, not generic verbose. Factual, simple and clear.
 
 ---
 

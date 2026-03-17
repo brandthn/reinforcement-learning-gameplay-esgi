@@ -14,7 +14,8 @@
 
 **Framework :** PyTorch (tout le code réseau de neurones)
 
-**Convention de langue :** Code (noms de variables, commentaires, docstrings) en anglais. Fichiers de documentation dans `docs/` en français. Commenter de manière factuelle, simple et claire.
+**Convention de langue :** Code (noms de variables, fonctions) en anglais. Commentaires, docstrings en français. 
+Fichiers de documentation dans `docs/` en français. Commenter de manière factuelle, simple et claire.
 
 ---
 
