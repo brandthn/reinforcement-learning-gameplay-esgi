@@ -1,0 +1,29 @@
+agent: ddqn
+agent_params:
+  batch_size: 64
+  buffer_capacity: 10000
+  epsilon_decay_steps: 100000
+  epsilon_end: 0.05
+  epsilon_start: 1.0
+  gamma: 0.99
+  hidden_layers:
+  - 256
+  - 128
+  lr: 0.0005
+  target_update_freq: 200
+env: bobail
+eval:
+  checkpoints:
+  - 1000
+  - 10000
+  - 100000
+  num_games: 50
+opponent: random
+seed: 456
+seeds:
+- 42
+- 123
+- 456
+training:
+  max_steps_per_episode: 500
+  num_episodes: 100000

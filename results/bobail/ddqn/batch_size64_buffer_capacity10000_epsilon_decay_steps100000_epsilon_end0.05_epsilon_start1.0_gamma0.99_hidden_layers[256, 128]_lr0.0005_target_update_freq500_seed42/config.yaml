@@ -14,13 +14,16 @@ agent_params:
 env: bobail
 eval:
   checkpoints:
-  - 500
+  - 1000
+  - 10000
+  - 100000
   num_games: 50
 opponent: random
-results_dir: results_dev
 seed: 42
 seeds:
 - 42
+- 123
+- 456
 training:
   max_steps_per_episode: 500
-  num_episodes: 500
+  num_episodes: 100000

@@ -21,4 +21,4 @@ eval:
   checkpoints: [1000, 10000, 100000]
   num_games: 50
 
-seeds: [42, 123, 456]
+seeds: [42, 123]
