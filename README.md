@@ -1,5 +1,27 @@
 # Projet DRL — Guide d'Entraînement & Expérimentation
 
+## Getting Started
+
+```bash
+git clone <repo>
+cd <repo>
+uv sync                                                        # installer les dépendances
+
+uv run pytest                                                  # vérifier que tout fonctionne
+
+uv run python scripts/run_gui.py                              # lancer la GUI (PyGame)
+
+uv run python scripts/train.py configs/dqn/grid_world.yaml   # entraîner un agent
+uv run python scripts/train.py configs/dqn/grid_world.yaml --quick  # mode rapide (dev)
+uv run python scripts/train_all.py                            # tout entraîner
+uv run python scripts/evaluate_all.py                         # réévaluer tous les modèles
+uv run python scripts/promote_best.py --all                   # promouvoir les meilleurs modèles vers best/
+```
+
+> **Prérequis :** Python ≥ 3.11, [`uv`](https://docs.astral.sh/uv/) installé.
+
+---
+
 ## Installation
 
 ```bash
