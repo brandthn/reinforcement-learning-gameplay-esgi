@@ -1,3 +1,0 @@
-run_dir: results/bobail/ddqn_per/batch_size64_buffer_capacity50000_epsilon_decay_steps100000_epsilon_end0.05_epsilon_start1.0_gamma0.99_hidden_layers[256, 128]_learning_starts5000_lr0.0003_per_alpha0.6_per_beta_end1.0_per_beta_start0.4_per_beta_steps80000_target_update_freq500_seed42
-checkpoint: 500
-model_file: model_500.pt

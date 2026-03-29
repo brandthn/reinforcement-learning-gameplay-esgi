@@ -1,3 +1,0 @@
-run_dir: results/line_world/dqn/batch_size64_buffer_capacity10000_epsilon_decay_steps10000_epsilon_end0.01_epsilon_start1.0_gamma0.99_hidden_layers[64, 64]_lr0.001_target_update_freq100_seed456
-checkpoint: 100000
-model_file: model_100000.pt
