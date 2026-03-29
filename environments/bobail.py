@@ -73,6 +73,7 @@ class BobailEnv(Environment):
             home_row = 4 if self._current == 0 else 0
             if br == home_row:
                 self._done = True
+                self._current = 1 - self._current  # switch so current = loser (convention)
                 return self.state_description(), 1.0, True
 
             return self.state_description(), 0.0, False
@@ -96,8 +97,7 @@ class BobailEnv(Environment):
         if not self._bobail_moves():
             self._done = True
             # Opponent (now current) cannot move bobail -> they lose
-            # Reward from perspective of the player who just acted (the previous player)
-            self._current = 1 - self._current  # switch back for state perspective
+            # current_player already points to the loser (convention)
             return self.state_description(), 1.0, True
 
         return self.state_description(), 0.0, False
