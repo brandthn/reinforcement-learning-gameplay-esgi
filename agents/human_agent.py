@@ -4,10 +4,10 @@ from .base import Agent
 
 
 class HumanAgent(Agent):
-    """Agent whose actions are set externally by the GUI.
+    """Agent dont les actions sont definies depuis l'exterieur par la GUI.
 
-    The GUI calls set_action() with the human's chosen action,
-    then the game loop calls act() which returns it.
+    La GUI appelle set_action() avec l'action choisie par l'humain,
+    puis la boucle de jeu appelle act() qui la retourne.
     """
 
     def __init__(self, state_size: int = 0, action_size: int = 0, **kwargs):

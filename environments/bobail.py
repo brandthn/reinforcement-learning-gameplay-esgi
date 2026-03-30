@@ -8,10 +8,10 @@ DIRECTIONS = [(-1, -1), (-1, 0), (-1, 1),
               (0, -1),           (0, 1),
               (1, -1),  (1, 0),  (1, 1)]
 
-# Initial positions (row, col)
-# Player 0: bottom row (row 4)
+# Positions initiales (ligne, colonne)
+# Joueur 0 : rangee du bas (ligne 4)
 _P0_START = [(4, c) for c in range(5)]
-# Player 1: top row (row 0)
+# Joueur 1 : rangee du haut (ligne 0)
 _P1_START = [(0, c) for c in range(5)]
 _BOBAIL_START = (2, 2)
 
@@ -32,19 +32,19 @@ def _in_bounds(r: int, c: int) -> bool:
 
 
 class BobailEnv(Environment):
-    """Bobail: 5x5 two-player game with two-phase turns (D-003).
+    """Bobail : jeu 5x5 a deux joueurs avec des tours en deux phases (D-003).
 
-    Action encoding: from_cell * 25 + to_cell (action space = 625).
-    Phase 0 = move bobail (1 step), Phase 1 = move own piece (slide).
-    First turn of the game: player 0 skips the bobail phase.
+    Encodage des actions : case_depart * 25 + case_arrivee (espace d'actions = 625).
+    Phase 0 = deplacer le bobail (1 pas), Phase 1 = deplacer sa propre piece (glissade).
+    Premier tour de la partie : le joueur 0 saute la phase bobail.
     """
 
     def __init__(self):
-        # pieces[player] = set of cell indices
+        # pieces[joueur] = ensemble d'indices de cases
         self._pieces = [set(), set()]
         self._bobail = 0
         self._current = 0
-        self._phase = PHASE_PIECE  # first turn starts at piece phase
+        self._phase = PHASE_PIECE  # le premier tour commence a la phase piece
         self._done = False
         self._turn_number = 0
         self._first_turn = True
@@ -54,7 +54,7 @@ class BobailEnv(Environment):
         self._pieces[1] = {_rc_to_idx(r, c) for r, c in _P1_START}
         self._bobail = _rc_to_idx(*_BOBAIL_START)
         self._current = 0
-        self._phase = PHASE_PIECE  # player 0's first turn skips bobail phase
+        self._phase = PHASE_PIECE  # le premier tour du joueur 0 saute la phase bobail
         self._done = False
         self._turn_number = 0
         self._first_turn = True
@@ -68,40 +68,40 @@ class BobailEnv(Environment):
             self._bobail = to_cell
             self._phase = PHASE_PIECE
 
-            # Row of bobail after move
+            # Ligne du bobail apres le deplacement
             br, _ = _idx_to_rc(self._bobail)
-            # P0 home = row 4, P1 home = row 0
+            # Camp J0 = ligne 4, Camp J1 = ligne 0
             home_row = 4 if self._current == 0 else 0
-            # Bobail on own home row = loss for current player
+            # Bobail sur la rangee maison du joueur courant = victoire pour le joueur courant
             if br == home_row:
                 self._done = True
-                # Convention: current = loser after game over
+                # Convention : current = perdant apres la fin de partie
                 self._current = 1 - self._current
                 return self.state_description(), 1.0, True
 
-            # No win, continue to piece phase
+            # Pas de victoire, on continue a la phase piece
             return self.state_description(), 0.0, False
 
-        # PHASE_PIECE
+        # PHASE_PIECE (deplacement de piece)
         self._pieces[self._current].discard(from_cell)
         self._pieces[self._current].add(to_cell)
 
         if self._first_turn:
             self._first_turn = False
 
-        # Switch to opponent
+        # Passage a l'adversaire
         opponent = 1 - self._current
         self._current = opponent
         self._turn_number += 1
 
-        # Next turn starts with bobail phase
+        # Le prochain tour commence par la phase bobail
         self._phase = PHASE_BOBAIL
 
-        # Check if opponent can move bobail
+        # Verifier si l'adversaire peut deplacer le bobail
         if not self._bobail_moves():
             self._done = True
-            # Opponent (now current) cannot move bobail -> they lose
-            # current_player already points to the loser (convention)
+            # L'adversaire (maintenant courant) ne peut pas deplacer le bobail -> il perd
+            # current_player pointe deja vers le perdant (convention)
             return self.state_description(), 1.0, True
 
         return self.state_description(), 0.0, False
@@ -115,7 +115,7 @@ class BobailEnv(Environment):
         return self._piece_moves()
 
     def _bobail_moves(self) -> list[int]:
-        """Legal bobail moves: 1 step in any direction, blocked by pieces/edges."""
+        """Mouvements legaux du bobail : 1 pas dans n'importe quelle direction, bloque par les pieces/bords."""
         br, bc = _idx_to_rc(self._bobail)
         occupied = self._pieces[0] | self._pieces[1]
         moves = []
@@ -128,19 +128,19 @@ class BobailEnv(Environment):
         return moves
 
     def _piece_moves(self) -> list[int]:
-        """Legal piece moves: slide as far as possible in one direction."""
+        """Mouvements legaux des pieces : glisser aussi loin que possible dans une direction."""
         occupied = self._pieces[0] | self._pieces[1] | {self._bobail}
         moves = []
         for cell in self._pieces[self._current]:
             r, c = _idx_to_rc(cell)
             for dr, dc in DIRECTIONS:
                 nr, nc = r + dr, c + dc
-                # Must move at least 1 cell
+                # Doit se deplacer d'au moins 1 case
                 if not _in_bounds(nr, nc):
                     continue
                 if _rc_to_idx(nr, nc) in occupied:
                     continue
-                # Slide until blocked
+                # Glisser jusqu'a etre bloque
                 while _in_bounds(nr + dr, nc + dc) and _rc_to_idx(nr + dr, nc + dc) not in occupied:
                     nr += dr
                     nc += dc
@@ -149,7 +149,7 @@ class BobailEnv(Environment):
         return moves
 
     def state_description(self) -> np.ndarray:
-        """3 channels of 25: current player pieces, opponent pieces, bobail."""
+        """3 canaux de 25 : pieces du joueur courant, pieces adverses, bobail."""
         my_pieces = np.zeros(NUM_CELLS, dtype=np.float32)
         opp_pieces = np.zeros(NUM_CELLS, dtype=np.float32)
         bobail = np.zeros(NUM_CELLS, dtype=np.float32)
@@ -163,10 +163,10 @@ class BobailEnv(Environment):
         return np.concatenate([my_pieces, opp_pieces, bobail])
 
     def action_space_size(self) -> int:
-        return NUM_CELLS * NUM_CELLS  # 625
+        return NUM_CELLS * NUM_CELLS
 
     def state_space_size(self) -> int:
-        return NUM_CELLS * 3  # 75
+        return NUM_CELLS * 3
 
     def is_adversarial(self) -> bool:
         return True

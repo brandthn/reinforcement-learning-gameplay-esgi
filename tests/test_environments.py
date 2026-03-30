@@ -1,12 +1,12 @@
-"""Conformance tests for all environments.
+"""Tests de conformite pour tous les environnements.
 
-Verifies that every environment correctly implements the Environment interface:
-- reset() returns correct shape
-- available_actions() returns non-empty list
-- step() returns correct tuple
-- random games terminate
-- clone() produces independent copies
-- two-player envs alternate players correctly
+Verifie que chaque environnement implemente correctement l'interface Environment :
+- reset() retourne la bonne forme
+- available_actions() retourne une liste non vide
+- step() retourne le bon tuple
+- les parties aleatoires se terminent
+- clone() produit des copies independantes
+- les environnements a deux joueurs alternent correctement les joueurs
 """
 import random
 import numpy as np
@@ -58,20 +58,20 @@ class TestEnvironmentInterface:
             action = random.choice(env.available_actions())
             _, _, done = env.step(action)
             steps += 1
-        assert done, f"Game did not terminate within {max_steps} steps"
+        assert done, f"La partie ne s'est pas terminee en {max_steps} pas"
 
     def test_clone_is_independent(self, env):
         env.reset()
         action = random.choice(env.available_actions())
         clone = env.clone()
 
-        # Step original
+        # Avancer l'original
         env.step(action)
         original_state = env.state_description()
         clone_state = clone.state_description()
 
         assert not np.array_equal(original_state, clone_state), \
-            "Clone state changed when original was stepped"
+            "L'etat du clone a change quand l'original a ete modifie"
 
     def test_state_description_matches_reset(self, env):
         state_from_reset = env.reset()
@@ -93,12 +93,12 @@ class TestAdversarialEnvs:
         assert adv_env.current_player() in (0, 1)
 
     def test_player_switches(self, adv_env):
-        """After a full turn, the current player should change."""
+        """Apres un tour complet, le joueur courant doit changer."""
         adv_env.reset()
         initial_player = adv_env.current_player()
 
-        # Play actions until the player switches (Bobail needs 1 piece move
-        # on first turn, other games need 1 move)
+        # Jouer des actions jusqu'a ce que le joueur change (Bobail necessite 1 deplacement
+        # de piece au premier tour, les autres jeux necessitent 1 coup)
         done = False
         steps = 0
         while not done and steps < 100:
@@ -110,7 +110,7 @@ class TestAdversarialEnvs:
 
         if not done:
             assert adv_env.current_player() != initial_player, \
-                "Player never switched"
+                "Le joueur n'a jamais change"
 
 
 class TestSinglePlayerEnvs:

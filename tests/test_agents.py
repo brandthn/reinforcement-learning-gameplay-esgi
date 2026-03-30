@@ -1,12 +1,12 @@
-"""Agent interface conformance tests.
+"""Tests de conformite de l'interface Agent.
 
-Parameterized over all non-human agents in the registry.
-Every agent must:
-- Return actions within available_actions (both training modes)
-- Accept observe() and end_episode() without crashing
-- Survive save/load round-trip (loaded agent acts identically)
+Parametrise sur tous les agents non-humains du registre.
+Chaque agent doit :
+- Retourner des actions dans available_actions (les deux modes d'entrainement)
+- Accepter observe() et end_episode() sans planter
+- Survivre a un aller-retour save/load (l'agent charge agit de maniere identique)
 
-Adding a new agent? Add its name + test params to AGENT_TEST_PARAMS below.
+Ajout d'un nouvel agent ? Ajoutez son nom + parametres de test dans AGENT_TEST_PARAMS ci-dessous.
 """
 
 import os
@@ -20,8 +20,8 @@ from environments import get_env
 from agents import get_agent
 
 
-# Maps agent name -> minimal params for instantiation.
-# Small values so tests run fast.
+# Associe nom d'agent -> parametres minimaux pour l'instanciation.
+# Petites valeurs pour que les tests soient rapides.
 AGENT_TEST_PARAMS = {
     "random": {},
 }
@@ -34,10 +34,10 @@ def _make_agent(agent_name, env):
     return get_agent(agent_name, env, AGENT_TEST_PARAMS[agent_name])
 
 
-# ─── Parameterized: every agent × every env ─────────────────────────
+# ─── Parametrise : chaque agent x chaque environnement ─────────────────────────
 
 class TestAgentInterface:
-    """Interface conformance: these tests MUST pass for every agent on every env."""
+    """Conformite de l'interface : ces tests DOIVENT passer pour chaque agent sur chaque env."""
 
     @pytest.fixture(params=[
         (a, e) for a in AGENT_NAMES for e in ALL_ENVS
@@ -76,7 +76,7 @@ class TestAgentInterface:
         agent.end_episode()
 
     def test_never_picks_illegal_action(self, agent_env):
-        """Run 50 steps of a random game, verify act() always returns legal action."""
+        """Jouer 50 pas d'une partie aleatoire, verifier que act() retourne toujours une action legale."""
         agent, env = agent_env
         state = env.reset()
         for _ in range(50):
@@ -95,7 +95,7 @@ class TestAgentInterface:
                 state = env.reset()
 
 
-# ─── Save / Load round-trip ──────────────────────────────────────────
+# ─── Aller-retour Save / Load ──────────────────────────────────────────
 
 class TestSaveLoad:
 
@@ -104,11 +104,11 @@ class TestSaveLoad:
         return request.param
 
     def test_save_load_deterministic(self, agent_name):
-        """After save+load, greedy action on the same state is identical."""
+        """Apres save+load, l'action greedy sur le meme etat est identique."""
         env = get_env("line_world")
         agent = _make_agent(agent_name, env)
 
-        # Do a few training steps so the agent has state
+        # Faire quelques pas d'entrainement pour que l'agent ait un etat
         state = env.reset()
         for _ in range(20):
             available = env.available_actions()
@@ -122,12 +122,12 @@ class TestSaveLoad:
                 agent.end_episode()
                 state = env.reset()
 
-        # Record greedy action
+        # Enregistrer l'action greedy
         test_state = env.reset()
         test_available = env.available_actions()
         action_before = agent.act(test_state, test_available, training=False)
 
-        # Save, create fresh agent, load
+        # Sauvegarder, creer un nouvel agent, charger
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as f:
             save_path = f.name
 

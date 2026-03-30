@@ -1,4 +1,4 @@
-"""CLI entry point for the DRL project."""
+"""Point d'entree CLI pour le projet DRL."""
 
 
 def main():

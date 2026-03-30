@@ -8,51 +8,51 @@ class Environment(ABC):
 
     @abstractmethod
     def reset(self) -> np.ndarray:
-        """Reset to initial state. Returns state vector."""
+        """Reinitialise a l'etat initial. Retourne le vecteur d'etat."""
         ...
 
     @abstractmethod
     def step(self, action: int) -> tuple[np.ndarray, float, bool]:
-        """Execute action. Returns (next_state, reward, done).
+        """Execute une action. Retourne (next_state, reward, done).
 
-        For two-player games:
-        - reward is from the perspective of the player who just acted
-        - next_state is from the perspective of the NEW current player
+        Pour les jeux a deux joueurs :
+        - reward est du point de vue du joueur qui vient d'agir
+        - next_state est du point de vue du NOUVEAU joueur courant
         """
         ...
 
     @abstractmethod
     def available_actions(self) -> list[int]:
-        """Legal action indices for the current player/phase."""
+        """Indices des actions legales pour le joueur/phase courant."""
         ...
 
     @abstractmethod
     def state_description(self) -> np.ndarray:
-        """Current state as flat float32 vector."""
+        """Etat courant sous forme de vecteur float32 aplati."""
         ...
 
     @abstractmethod
     def action_space_size(self) -> int:
-        """Total number of possible actions (including currently illegal ones)."""
+        """Nombre total d'actions possibles (y compris les actions actuellement illegales)."""
         ...
 
     @abstractmethod
     def state_space_size(self) -> int:
-        """Dimensionality of state_description() output."""
+        """Dimensionnalite de la sortie de state_description()."""
         ...
 
     def is_adversarial(self) -> bool:
-        """Override to return True for two-player games."""
+        """Surcharger pour retourner True pour les jeux a deux joueurs."""
         return False
 
     def current_player(self) -> int:
-        """0 for single-player. 0 or 1 for two-player."""
+        """0 pour un joueur. 0 ou 1 pour deux joueurs."""
         return 0
 
     def clone(self):
-        """Deep copy. Required for MCTS/AlphaZero/MuZero."""
+        """Copie profonde. Necessaire pour MCTS/AlphaZero/MuZero."""
         return copy.deepcopy(self)
 
     def render_text(self) -> str:
-        """Optional text representation for debugging."""
+        """Representation textuelle optionnelle pour le debogage."""
         return ""

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch the Pygame GUI."""
+"""Lancer l'interface graphique Pygame."""
 
 import sys
 import os

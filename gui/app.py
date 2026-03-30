@@ -1,7 +1,7 @@
-"""Pygame GUI for watching agents play or playing as human.
+"""Interface graphique Pygame pour observer les agents jouer ou jouer en tant qu'humain.
 
-Supports all 4 environments (LineWorld, GridWorld, TicTacToe, Bobail).
-Two modes: watch (AI vs AI) and play (human vs AI or human vs human).
+Supporte les 4 environnements (LineWorld, GridWorld, TicTacToe, Bobail).
+Deux modes : observer (IA vs IA) et jouer (humain vs IA ou humain vs humain).
 """
 
 import glob
@@ -19,7 +19,7 @@ from environments.bobail import BOARD_SIZE as BOBAIL_SIZE, PHASE_BOBAIL, _idx_to
 from agents import AGENT_REGISTRY, get_agent
 from agents.human_agent import HumanAgent
 
-# --- Colors ---
+# --- Couleurs ---
 BG = (30, 30, 40)
 PANEL_BG = (45, 45, 58)
 WHITE = (240, 240, 240)
@@ -91,31 +91,31 @@ class App:
         self.state = self.STATE_MENU
         self.env = None
         self.env_name = ""
-        self.agents = []  # [agent_p0, agent_p1] or [agent] for single-player
+        self.agents = []  # [agent_j0, agent_j1] ou [agent] pour un joueur
         self.agent_names = []
 
-        # Menu selections
+        # Selections du menu
         self.env_choices = list(ENV_REGISTRY.keys())
         self.agent_choices = list(AGENT_REGISTRY.keys())
         self.selected_env = 0
         self.selected_agent0 = 0
         self.selected_agent1 = 0
 
-        # Model selections (index into model choices list)
+        # Selections de modele (index dans la liste des choix de modeles)
         self.selected_model0 = 0
         self.selected_model1 = 0
         self._model_scroll0 = 0
         self._model_scroll1 = 0
         self._cached_model_choices: dict[tuple, list] = {}
 
-        # Game state
+        # Etat de la partie
         self.game_state = None
         self.done = False
         self.last_reward = 0.0
         self.winner_text = ""
         self.last_ai_step_time = 0
-        self.selected_piece = None  # for Bobail click-based input
-        self.valid_moves_from_selected = {}  # to_cell -> action_int
+        self.selected_piece = None  # pour la saisie par clic dans Bobail
+        self.valid_moves_from_selected = {}  # case_arrivee -> action_int
 
     def main_loop(self):
         running = True
@@ -145,7 +145,7 @@ class App:
 
     def _build_model_row(self, buttons, cx: int, y: int, prefix: str,
                          choices: list, selected: int, scroll: int) -> int:
-        """Add model selector buttons to the buttons dict. Returns updated y."""
+        """Ajoute les boutons de selection de modele au dict buttons. Retourne y mis a jour."""
         buttons[f"_{prefix}_label_y"] = y
         y += 25
 
@@ -193,7 +193,7 @@ class App:
         return y
 
     def _build_menu_buttons(self):
-        """Rebuild menu buttons (called each frame for simplicity)."""
+        """Reconstruit les boutons du menu (appele a chaque frame par simplicite)."""
         buttons = {}
         cx = WINDOW_W // 2
         y = 80
@@ -201,7 +201,7 @@ class App:
         buttons["_title_y"] = y
         y += 60
 
-        # Env selector
+        # Selecteur d'environnement
         buttons["_env_label_y"] = y
         y += 30
         short_env = ["Line", "Grid", "TicTac", "Bobail"]
@@ -214,7 +214,7 @@ class App:
         env_name = self.env_choices[self.selected_env]
         test_env = get_env(env_name)
 
-        # Agent 0 selector
+        # Selecteur agent 0
         buttons["_agent0_label_y"] = y
         y += 28
         n_agents = len(self.agent_choices)
@@ -229,7 +229,7 @@ class App:
             buttons[f"agent0_{i}"] = Button(r, name, self.font_sm, color=color)
         y += 40
 
-        # Model 0 selector
+        # Selecteur modele 0
         a0_name = self.agent_choices[self.selected_agent0]
         if self._agent_needs_model(a0_name):
             choices0 = self._get_model_choices(a0_name, env_name)
@@ -237,7 +237,7 @@ class App:
                                       choices0, self.selected_model0,
                                       self._model_scroll0)
 
-        # Agent 1 + Model 1 (adversarial only)
+        # Agent 1 + Modele 1 (adversariel uniquement)
         if test_env.is_adversarial():
             buttons["_agent1_label_y"] = y
             y += 28
@@ -255,7 +255,7 @@ class App:
                                           choices1, self.selected_model1,
                                           self._model_scroll1)
 
-        # Start button
+        # Bouton demarrer
         can_start = self._can_start()
         start_color = ACCENT if can_start else DARK_GRAY
         buttons["start"] = Button(
@@ -302,7 +302,7 @@ class App:
 
     def _handle_model_click(self, key: str, prefix: str, agent_name: str,
                             env_name: str):
-        """Handle clicks on model selector buttons."""
+        """Gere les clics sur les boutons de selection de modele."""
         suffix = key[len(prefix) + 1:]
         if suffix == "left":
             if prefix == "model0":
@@ -369,14 +369,14 @@ class App:
                 if self._can_start():
                     self._start_game()
 
-    # --- Model discovery ---
+    # --- Decouverte de modeles ---
 
     @staticmethod
     def _agent_needs_model(agent_name: str) -> bool:
         return agent_name not in AGENTS_WITHOUT_MODELS
 
     def _scan_models(self, agent_name: str, env_name: str) -> list[tuple[str, str]]:
-        """Return [(label, run_dir_path), ...] for available trained models."""
+        """Retourne [(label, chemin_run_dir), ...] pour les modeles entraines disponibles."""
         agent_dir = os.path.join("results", env_name, agent_name)
         if not os.path.isdir(agent_dir):
             return []
@@ -425,7 +425,7 @@ class App:
 
     @staticmethod
     def _find_model_in_dir(run_dir: str) -> str | None:
-        """Find model file: model.pt (best/) or latest model_{N}.pt."""
+        """Trouve le fichier modele : model.pt (best/) ou le dernier model_{N}.pt."""
         model_pt = os.path.join(run_dir, "model.pt")
         if os.path.isfile(model_pt):
             return model_pt
@@ -443,7 +443,7 @@ class App:
         return best_path
 
     def _create_agent_for_play(self, agent_name: str, run_dir: str | None, env):
-        """Instantiate an agent, loading config and model from a results run dir."""
+        """Instancie un agent, charge la config et le modele depuis un repertoire de resultats."""
         if run_dir is None:
             return get_agent(agent_name, env)
 
@@ -477,7 +477,7 @@ class App:
 
     def _resolve_run_dir(self, agent_name: str, env_name: str,
                          selected_idx: int) -> str | None:
-        """Get the run_dir for a model-based agent, or None."""
+        """Obtient le run_dir pour un agent base sur un modele, ou None."""
         if not self._agent_needs_model(agent_name):
             return None
         choices = self._get_model_choices(agent_name, env_name)
@@ -515,7 +515,7 @@ class App:
         self.valid_moves_from_selected = {}
         self.state = self.STATE_PLAYING
 
-    # --- Game logic ---
+    # --- Logique de jeu ---
 
     def _current_agent(self) -> "Agent":
         player = self.env.current_player()
@@ -561,7 +561,7 @@ class App:
     def _set_game_over(self):
         self.state = self.STATE_GAME_OVER
         if self.last_reward > 0:
-            # The player who just acted won; but current_player already switched
+            # Le joueur qui vient d'agir a gagne ; mais current_player a deja change
             winner = 1 - self.env.current_player() if self.env.is_adversarial() else 0
             self.winner_text = f"Player {winner + 1} wins!"
         elif self.last_reward < 0:
@@ -573,7 +573,7 @@ class App:
             else:
                 self.winner_text = "Game over!"
 
-    # --- Input handling ---
+    # --- Gestion des entrees ---
 
     def _handle_click(self, mouse_pos):
         if self.state == self.STATE_MENU:
@@ -590,7 +590,7 @@ class App:
                 self._do_step_human(action)
 
     def _key_to_action(self, key) -> int | None:
-        """Map keyboard to action for LineWorld/GridWorld human play."""
+        """Associe les touches clavier aux actions pour le jeu humain LineWorld/GridWorld."""
         if self.env_name == "line_world":
             if key == pygame.K_LEFT:
                 return 0
@@ -613,7 +613,7 @@ class App:
         if hasattr(self, "_back_btn") and self._back_btn.clicked(mouse_pos):
             self.state = self.STATE_MENU
 
-    # --- TicTacToe click ---
+    # --- Clic TicTacToe ---
 
     def _handle_tictactoe_click(self, mouse_pos):
         board_rect = self._get_board_rect(3, 3)
@@ -628,7 +628,7 @@ class App:
         if action in self.env.available_actions():
             self._do_step_human(action)
 
-    # --- Bobail click ---
+    # --- Clic Bobail ---
 
     def _handle_bobail_click(self, mouse_pos):
         board_rect = self._get_board_rect(BOBAIL_SIZE, BOBAIL_SIZE)
@@ -644,16 +644,16 @@ class App:
         available = self.env.available_actions()
 
         if self.selected_piece is not None:
-            # Second click: try to move to this cell
+            # Deuxieme clic : essayer de se deplacer vers cette case
             if clicked_idx in self.valid_moves_from_selected:
                 action = self.valid_moves_from_selected[clicked_idx]
                 self._do_step_human(action)
                 return
-            # Clicked elsewhere: deselect and fall through to try selecting
+            # Clic ailleurs : deselectionner et essayer de selectionner
             self.selected_piece = None
             self.valid_moves_from_selected = {}
 
-        # First click: select a source piece
+        # Premier clic : selectionner une piece source
         moves_from_here = {}
         for a in available:
             from_cell = a // (BOBAIL_SIZE * BOBAIL_SIZE)
@@ -665,7 +665,7 @@ class App:
             self.selected_piece = clicked_idx
             self.valid_moves_from_selected = moves_from_here
 
-    # --- Drawing: Game ---
+    # --- Dessin : Jeu ---
 
     def _get_board_rect(self, rows, cols) -> pygame.Rect:
         board_area_w = min(500, WINDOW_W - 250)
@@ -721,13 +721,13 @@ class App:
                 self.screen.blit(hint2, (panel_x + 15, y + 20))
             y += 45
 
-        # Back to menu button
+        # Bouton retour au menu
         self._back_btn = Button(
             pygame.Rect(panel_x + 20, WINDOW_H - 60, 170, 40),
             "Back to Menu", self.font_sm, color=DARK_GRAY)
         self._back_btn.draw(self.screen, mouse_pos)
 
-    # --- LineWorld ---
+    # --- LineWorld (Monde lineaire) ---
 
     def _draw_line_world(self):
         env = self.env
@@ -757,7 +757,7 @@ class App:
                 txt = self.font_lg.render("G", True, WHITE)
                 self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, start_y + cell_h // 2)))
 
-    # --- GridWorld ---
+    # --- GridWorld (Monde en grille) ---
 
     def _draw_grid_world(self):
         env = self.env
@@ -785,7 +785,7 @@ class App:
                     txt = self.font_lg.render("G", True, WHITE)
                     self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, y + cell_h // 2)))
 
-    # --- TicTacToe ---
+    # --- TicTacToe (Morpion) ---
 
     def _draw_tictactoe(self):
         env = self.env
@@ -839,7 +839,7 @@ class App:
                 color = BOARD_LIGHT if (r + c) % 2 == 0 else BOARD_DARK
                 idx = _rc_to_idx(r, c)
 
-                # Highlight valid move destinations
+                # Surligner les destinations de deplacement valides
                 if idx in self.valid_moves_from_selected:
                     color = (140, 210, 140)
 
@@ -868,9 +868,9 @@ class App:
                     txt = self.font_sm.render("2", True, WHITE)
                     self.screen.blit(txt, txt.get_rect(center=(cx_pos, cy_pos)))
 
-        # Draw home row indicators
+        # Dessiner les indicateurs de rangee de camp
         for c in range(BOBAIL_SIZE):
-            # P1 home = row 4 (bottom), P2 home = row 0 (top)
+            # Camp J1 = ligne 4 (bas), Camp J2 = ligne 0 (haut)
             x_top = board_rect.x + c * cell_w + cell_w // 2
             x_bot = x_top
             txt_top = self.font_sm.render("^", True, (RED[0], RED[1], RED[2], 80))

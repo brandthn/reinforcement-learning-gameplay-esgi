@@ -1,4 +1,4 @@
-"""Frozen-policy evaluation at training checkpoints."""
+"""Evaluation a politique figee aux points de controle d'entrainement."""
 
 import time
 import numpy as np
@@ -8,12 +8,12 @@ from agents.base import Agent
 
 
 class Evaluator:
-    """Runs a trained agent in inference mode and collects statistics.
+    """Execute un agent entraine en mode inference et collecte les statistiques.
 
-    Metrics collected per evaluation:
-    - mean/std reward over N games
-    - mean/std episode length (steps)
-    - mean/std per-action wall-clock time (ms)
+    Metriques collectees par evaluation :
+    - moyenne/ecart-type de la recompense sur N parties
+    - moyenne/ecart-type de la longueur d'episode (pas)
+    - moyenne/ecart-type du temps reel par action (ms)
     """
 
     def evaluate(self, agent: Agent, env: Environment, num_games: int,

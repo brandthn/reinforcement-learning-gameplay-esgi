@@ -4,7 +4,7 @@ from .base import Environment
 
 
 class GridWorldEnv(Environment):
-    """2D grid: agent starts top-left (0,0), goal at bottom-right (rows-1, cols-1)."""
+    """Grille 2D : l'agent demarre en haut a gauche (0,0), objectif en bas a droite (rows-1, cols-1)."""
 
     def __init__(self, rows: int = 5, cols: int = 5):
         self._rows = rows
@@ -18,7 +18,7 @@ class GridWorldEnv(Environment):
         return self.state_description()
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool]:
-        # 0=up, 1=down, 2=left, 3=right
+        # 0=haut, 1=bas, 2=gauche, 3=droite
         if action == 0:
             self._row = max(0, self._row - 1)
         elif action == 1:

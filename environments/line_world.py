@@ -4,7 +4,7 @@ from .base import Environment
 
 
 class LineWorldEnv(Environment):
-    """1D grid: agent starts at cell 0, goal at cell N-1."""
+    """Grille 1D : l'agent demarre a la case 0, objectif a la case N-1."""
 
     def __init__(self, size: int = 5):
         self._size = size

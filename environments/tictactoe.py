@@ -3,17 +3,17 @@ import numpy as np
 from .base import Environment
 
 _WIN_LINES = [
-    (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
-    (0, 3, 6), (1, 4, 7), (2, 5, 8),  # cols
-    (0, 4, 8), (2, 4, 6),              # diags
+    (0, 1, 2), (3, 4, 5), (6, 7, 8),  # lignes
+    (0, 3, 6), (1, 4, 7), (2, 5, 8),  # colonnes
+    (0, 4, 8), (2, 4, 6),              # diagonales
 ]
 
 
 class TicTacToeEnv(Environment):
-    """3x3 TicTacToe with current-player perspective encoding (D-002)."""
+    """TicTacToe 3x3 avec encodage du point de vue du joueur courant (D-002)."""
 
     def __init__(self):
-        # board[i]: 0=empty, 1=player0, 2=player1
+        # board[i] : 0=vide, 1=joueur0, 2=joueur1
         self._board = np.zeros(9, dtype=np.int8)
         self._current = 0
         self._done = False
@@ -25,13 +25,13 @@ class TicTacToeEnv(Environment):
         return self.state_description()
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool]:
-        player_mark = self._current + 1  # 1 or 2
+        player_mark = self._current + 1  # 1 ou 2
         self._board[action] = player_mark
 
         if self._check_win(player_mark):
             self._done = True
             reward = 1.0
-            # switch perspective so state is from next player's view
+            # changer de perspective pour que l'etat soit du point de vue du prochain joueur
             self._current = 1 - self._current
             return self.state_description(), reward, True
 
@@ -50,7 +50,7 @@ class TicTacToeEnv(Environment):
         return [i for i in range(9) if self._board[i] == 0]
 
     def state_description(self) -> np.ndarray:
-        """3 channels of 9: current player marks, opponent marks, empty cells."""
+        """3 canaux de 9 : marques du joueur courant, marques adverses, cases vides."""
         my_mark = self._current + 1
         opp_mark = 2 - self._current
 

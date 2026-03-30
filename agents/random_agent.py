@@ -6,7 +6,7 @@ from .base import Agent
 
 
 class RandomAgent(Agent):
-    """Picks uniformly at random from available actions."""
+    """Choisit uniformement au hasard parmi les actions disponibles."""
 
     def __init__(self, state_size: int = 0, action_size: int = 0, **kwargs):
         pass
