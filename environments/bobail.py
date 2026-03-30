@@ -68,14 +68,18 @@ class BobailEnv(Environment):
             self._bobail = to_cell
             self._phase = PHASE_PIECE
 
-            # Check if bobail reached current player's home row
+            # Row of bobail after move
             br, _ = _idx_to_rc(self._bobail)
+            # P0 home = row 4, P1 home = row 0
             home_row = 4 if self._current == 0 else 0
+            # Bobail on own home row = loss for current player
             if br == home_row:
                 self._done = True
-                self._current = 1 - self._current  # switch so current = loser (convention)
+                # Convention: current = loser after game over
+                self._current = 1 - self._current
                 return self.state_description(), 1.0, True
 
+            # No win, continue to piece phase
             return self.state_description(), 0.0, False
 
         # PHASE_PIECE
