@@ -1,0 +1,80 @@
+scripts/benchmark.py — Mesure de performance des environnements
+But
+Mesurer la vitesse d'exécution (parties/seconde) et la durée moyenne (coups/partie) de chaque environnement du projet, en jouant N parties avec des actions aléatoires.
+
+Flux d'exécution — Diagramme
+
+┌─────────────────────────────────────────────────────────┐
+│                        main()                           │
+│                                                         │
+│  1. Lire l'argument CLI (ou défaut = 1000)              │
+│  2. Afficher l'en-tête du tableau                       │
+│                                                         │
+│  3. Pour CHAQUE environnement dans ENV_REGISTRY :       │
+│     ┌─────────────────────────────────────────────┐     │
+│     │         benchmark_env(env_name, n)          │     │
+│     │                                             │     │
+│     │  a. Créer l'environnement via get_env()     │     │
+│     │  b. Démarrer le chronomètre                 │     │
+│     │                                             │     │
+│     │  c. Répéter n fois :                        │     │
+│     │     ┌───────────────────────────────┐       │     │
+│     │     │  env.reset()                  │       │     │
+│     │     │                               │       │     │
+│     │     │  Tant que pas terminé :       │       │     │
+│     │     │    ┌────────────────────────┐  │       │     │
+│     │     │    │ actions = env          │  │       │     │
+│     │     │    │   .available_actions() │  │       │     │
+│     │     │    │ action = random.choice │  │       │     │
+│     │     │    │   (actions)            │  │       │     │
+│     │     │    │ env.step(action)       │  │       │     │
+│     │     │    │ steps += 1             │  │       │     │
+│     │     │    └────────────────────────┘  │       │     │
+│     │     │                               │       │     │
+│     │     │  total_steps += steps         │       │     │
+│     │     └───────────────────────────────┘       │     │
+│     │                                             │     │
+│     │  d. Arrêter le chronomètre                  │     │
+│     │  e. Calculer :                              │     │
+│     │     games/sec = n / temps_écoulé            │     │
+│     │     avg_steps = total_steps / n             │     │
+│     │  f. Retourner (games/sec, avg_steps)        │     │
+│     └─────────────────────────────────────────────┘     │
+│                                                         │
+│  4. Afficher la ligne de résultats                      │
+└─────────────────────────────────────────────────────────┘
+Les deux fonctions en détail
+benchmark_env(env_name, n_games) — ligne 16
+Étape	Code	Ce que ça fait
+Créer l'env	env = get_env(env_name)	Instancie l'environnement à partir du registre (ENV_REGISTRY = dictionnaire nom → classe). Ex: "bobail" → BobailEnv()
+Chrono start	start = time.perf_counter()	Démarre un chronomètre haute précision (nanosecondes)
+Boucle parties	for _ in range(n_games)	Joue n_games parties complètes
+Reset	env.reset()	Remet le plateau/grille à l'état initial
+Boucle coups	while not done	Joue coup par coup jusqu'à fin de partie
+Action aléatoire	random.choice(env.available_actions())	Choisit un coup légal au hasard parmi tous les coups possibles
+Exécuter	env.step(action) → (state, reward, done)	Applique l'action, retourne le nouvel état, la récompense, et si la partie est finie
+Comptage	steps += 1, total_steps += steps	Compte le nombre total de coups joués
+Chrono stop	elapsed = perf_counter() - start	Mesure le temps total écoulé
+Résultats	n / elapsed, total_steps / n	Calcule parties/sec et coups moyens/partie
+main() — ligne 38
+Étape	Code	Ce que ça fait
+Lire N	int(sys.argv[1]) if len(sys.argv) > 1 else 1000	Prend le 1er argument CLI comme nombre de parties, sinon 1000 par défaut
+En-tête	print(f"{'Environment':<15} ...")	Affiche un tableau formaté avec colonnes alignées
+Boucle envs	for env_name in ENV_REGISTRY	Itère sur les 4 environnements : line_world, grid_world, tictactoe, bobail
+Affichage	print(f"{env_name:<15} {gps:>12.1f} ...")	Affiche chaque résultat sur une ligne
+Exemple de sortie attendue
+
+Running 1000 random games per environment...
+
+Environment       Games/sec    Avg steps
+------------------------------------------
+line_world         85000.3          4.2
+grid_world         42000.7         12.8
+tictactoe          31000.5          6.1
+bobail              8500.2         28.4
+(Les valeurs sont fictives — elles dépendent de ta machine et de la complexité de chaque env.)
+
+Pourquoi c'est utile
+Comparer les environnements : un env lent (peu de games/sec) ralentira l'entraînement d'un agent
+Détecter des régressions : si après une modification du code de BobailEnv, les games/sec chutent, il y a un problème de performance
+Estimer le temps d'entraînement : si un agent doit jouer 1M de parties et l'env tourne à 8000 games/sec → ~2 minutes de simulation
