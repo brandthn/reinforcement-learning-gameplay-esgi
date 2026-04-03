@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmark : jouer N parties aleatoires par environnement, afficher les parties/seconde."""
+"""Benchmark: run N random games per environment, print games/second."""
 
 import sys
 import os
@@ -14,7 +14,7 @@ NUM_GAMES = 1000
 
 
 def benchmark_env(env_name: str, n_games: int) -> tuple[float, float]:
-    """Retourne (parties_par_seconde, nombre_moyen_de_pas_par_partie)."""
+    """Returns (games_per_second, avg_steps_per_game)."""
     env = get_env(env_name)
     total_steps = 0
 

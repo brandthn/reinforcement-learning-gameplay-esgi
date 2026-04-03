@@ -1,4 +1,4 @@
-"""Boucle d'entrainement generique pour un joueur."""
+"""Generic single-player training loop."""
 
 import os
 import csv
@@ -11,10 +11,10 @@ from evaluation.evaluator import Evaluator
 
 
 class Trainer:
-    """Entraine un seul agent sur un environnement a un joueur.
+    """Trains a single agent on a single-player environment.
 
-    Aux points de controle configures, gele la politique et l'evalue.
-    Ecrit training_curve.csv (par episode) et metrics.csv (aux points de controle).
+    At configured checkpoints, freezes the policy and evaluates it.
+    Writes training_curve.csv (per-episode) and metrics.csv (at checkpoints).
     """
 
     def __init__(self, env: Environment, agent: Agent, config: dict):

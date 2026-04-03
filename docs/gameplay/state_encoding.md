@@ -249,7 +249,8 @@ Cela permet a un meme reseau de neurones d'apprendre a jouer independamment du "
 ```mermaid
 graph TD
     A["Encoding binaire multi-canal"]
-    A --> B["Pas d'information ordinale artificielle<br/>(evite d'encoder J0=1, J1=2)"]
+    A --> B["Pas de biais de proximite<br/>(coordonnees normalisees rendraient cases voisines<br/>numeriquement proches, donc 'similaires' pour le reseau<br/>meme si separees par un mur)"]
+    A --> F["Pas d'information ordinale artificielle<br/>(evite d'encoder J0=1, J1=2)"]
     A --> C["Compatible reseaux de neurones<br/>(valeurs normalisees 0-1)"]
     A --> D["Perspective-invariant<br/>(meme representation quel que soit le camp)"]
     A --> E["Separation claire des composants<br/>(pieces, adversaire, vide/bobail)"]

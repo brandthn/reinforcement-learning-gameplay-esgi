@@ -1,4 +1,4 @@
-"""Boucle d'entrainement a deux joueurs avec self-play."""
+"""Two-player training loop with self-play."""
 
 import os
 import csv
@@ -11,15 +11,15 @@ from evaluation.evaluator import Evaluator
 
 
 class SelfPlayTrainer:
-    """Entraine un agent apprenant (joueur 0) contre un adversaire dans les env adversariels.
+    """Trains a learning agent (player 0) against an opponent in adversarial envs.
 
-    Utilise l'observation differee : le observe() de l'agent recoit des etats de meme perspective.
-    Quand l'agent agit, on stocke (etat, action) et on livre la transition seulement
-    quand l'agent agit a nouveau (next_state correct de son propre point de vue)
-    ou quand la partie se termine.
+    Uses deferred observe: the agent's observe() receives same-perspective states.
+    When the agent acts, we store (state, action) and deliver the transition only
+    when the agent gets to act again (correct next_state from its own perspective)
+    or when the game ends.
 
-    Cela garantit que les cibles Q(s,a) utilisent s' du point de vue du meme joueur,
-    ce qui est requis pour les methodes off-policy (famille DQN).
+    This ensures Q(s,a) targets use s' from the same player's viewpoint, which is
+    required for off-policy methods (DQN family).
     """
 
     def __init__(self, env: Environment, agent: Agent, opponent: Agent,
@@ -97,7 +97,7 @@ class SelfPlayTrainer:
         state = self._env.reset()
         done = False
 
-        # Comptabilite de l'observation differee pour l'agent apprenant
+        # Deferred-observe bookkeeping for the learning agent
         pending_state = None
         pending_action = None
         pending_reward = 0.0
@@ -115,7 +115,7 @@ class SelfPlayTrainer:
                 break
 
             if player == 0:
-                # Livrer la transition en attente precedente (non-terminale)
+                # Deliver previous pending transition (non-terminal)
                 if pending_state is not None:
                     self._agent.observe(
                         pending_state, pending_action, pending_reward,
@@ -137,10 +137,10 @@ class SelfPlayTrainer:
                 pending_reward += reward
                 agent_reward += reward
 
-            # Terminal : vider la transition en attente
+            # Terminal: flush pending transition
             if done and pending_state is not None:
                 if player != 0:
-                    # L'adversaire a termine la partie : la recompense est du point de vue de l'adversaire
+                    # Opponent ended game: reward is from opponent's perspective
                     pending_reward -= reward
                     agent_reward -= reward
                 self._agent.observe(

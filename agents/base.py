@@ -8,27 +8,27 @@ class Agent(ABC):
     @abstractmethod
     def act(self, state: np.ndarray, available_actions: list[int],
             training: bool = False) -> int:
-        """Choisir une action.
+        """Select an action.
 
-        training=True : peut explorer (epsilon-greedy, stochastique, etc.)
-        training=False : exploitation pure (greedy, deterministe)
+        training=True: may explore (epsilon-greedy, stochastic, etc.)
+        training=False: pure exploitation (greedy, deterministic)
         """
         ...
 
     def observe(self, state, action, reward, next_state, done):
-        """Appele apres env.step() pendant l'entrainement. Par defaut : no-op."""
+        """Called after env.step() during training. Default: no-op."""
         pass
 
     def end_episode(self):
-        """Appele a la fin de chaque episode d'entrainement. Par defaut : no-op."""
+        """Called at end of each training episode. Default: no-op."""
         pass
 
     def save(self, path: str) -> None:
-        """Sauvegarder le modele/poids/tables."""
+        """Save model/weights/tables."""
         pass
 
     def load(self, path: str) -> None:
-        """Charger le modele/poids/tables."""
+        """Load model/weights/tables."""
         pass
 
     @property

@@ -10,12 +10,14 @@
 
 Vecteur one-hot de taille N (nombre de cases), dtype float32.
 
-| Index | Signification |
-|-------|---------------|
+
+| Index | Signification                           |
+| ----- | --------------------------------------- |
 | 0     | Agent en case 0 (1.0 si oui, 0.0 sinon) |
-| 1     | Agent en case 1 |
-| ...   | ... |
-| N-1   | Agent en case N-1 (case objectif) |
+| 1     | Agent en case 1                         |
+| ...   | ...                                     |
+| N-1   | Agent en case N-1 (case objectif)       |
+
 
 **Taille du vecteur d'état :** N (par défaut N=5)
 
@@ -23,10 +25,12 @@ Vecteur one-hot de taille N (nombre de cases), dtype float32.
 
 ### Actions
 
-| Index | Action |
-|-------|--------|
+
+| Index | Action         |
+| ----- | -------------- |
 | 0     | Aller à gauche |
 | 1     | Aller à droite |
+
 
 **Taille de l'espace d'actions :** 2
 
@@ -44,13 +48,15 @@ Encodage one-hot : représentation la plus directe pour un agent dont la seule i
 
 Vecteur one-hot de taille rows × cols, dtype float32.
 
-| Index | Signification |
-|-------|---------------|
-| 0     | Agent en position (0,0) — coin supérieur gauche |
-| 1     | Agent en position (0,1) |
-| ...   | ... |
-| r*cols+c | Agent en position (r,c) |
-| rows*cols-1 | Agent en position (rows-1, cols-1) — objectif |
+
+| Index       | Signification                                   |
+| ----------- | ----------------------------------------------- |
+| 0           | Agent en position (0,0) — coin supérieur gauche |
+| 1           | Agent en position (0,1)                         |
+| ...         | ...                                             |
+| r*cols+c    | Agent en position (r,c)                         |
+| rows*cols-1 | Agent en position (rows-1, cols-1) — objectif   |
+
 
 **Taille du vecteur d'état :** rows × cols (par défaut 25 pour une grille 5×5)
 
@@ -60,12 +66,14 @@ Vecteur one-hot de taille rows × cols, dtype float32.
 
 ### Actions
 
-| Index | Action |
-|-------|--------|
-| 0     | Haut (ligne - 1) |
-| 1     | Bas (ligne + 1) |
+
+| Index | Action               |
+| ----- | -------------------- |
+| 0     | Haut (ligne - 1)     |
+| 1     | Bas (ligne + 1)      |
 | 2     | Gauche (colonne - 1) |
 | 3     | Droite (colonne + 1) |
+
 
 **Taille de l'espace d'actions :** 4
 
@@ -73,7 +81,7 @@ Vecteur one-hot de taille rows × cols, dtype float32.
 
 ### Justification des choix
 
-Même logique que LineWorld étendue en 2D. Le one-hot évite d'introduire un biais de proximité entre cases (que des coordonnées (x, y) normalisées introduiraient). Pour une grille 5×5, un vecteur de 25 éléments reste très compact.
+Même logique que LineWorld étendue en 2D. Le one-hot évite d'introduire un **biais de proximité** : avec des coordonnées `(x, y)` normalisées, les cases voisines auraient des valeurs numériques proches, ce qui amènerait le réseau à les considérer comme des situations similaires — même si elles ont des propriétés radicalement différentes (ex. deux cases de part et d'autre d'un mur). Avec le one-hot, chaque case est orthogonale à toutes les autres : aucune fausse similarité géométrique n'est induite. Pour une grille 5×5, un vecteur de 25 éléments reste très compact.
 
 ---
 
@@ -83,13 +91,16 @@ Même logique que LineWorld étendue en 2D. Le one-hot évite d'introduire un bi
 
 3 canaux de 9 valeurs chacun, concaténés en un vecteur de 27 float32.
 
-| Canal | Index | Signification |
-|-------|-------|---------------|
-| 0 | 0–8 | Pièces du joueur courant (1.0 si marquée, 0.0 sinon) |
-| 1 | 9–17 | Pièces de l'adversaire (1.0 si marquée, 0.0 sinon) |
-| 2 | 18–26 | Cases vides (1.0 si vide, 0.0 sinon) |
+
+| Canal | Index | Signification                                        |
+| ----- | ----- | ---------------------------------------------------- |
+| 0     | 0–8   | Pièces du joueur courant (1.0 si marquée, 0.0 sinon) |
+| 1     | 9–17  | Pièces de l'adversaire (1.0 si marquée, 0.0 sinon)   |
+| 2     | 18–26 | Cases vides (1.0 si vide, 0.0 sinon)                 |
+
 
 **Mapping des cases :**
+
 ```
 Index : 0 | 1 | 2
         3 | 4 | 5
@@ -102,9 +113,11 @@ Index : 0 | 1 | 2
 
 ### Actions
 
-| Index | Action |
-|-------|--------|
+
+| Index | Action                                       |
+| ----- | -------------------------------------------- |
 | 0–8   | Placer sa marque dans la case correspondante |
+
 
 **Taille de l'espace d'actions :** 9
 
@@ -122,13 +135,16 @@ L'encodage multi-canal sépare clairement les pièces alliées, ennemies, et les
 
 3 canaux de 25 valeurs chacun (grille 5×5), concaténés en un vecteur de 75 float32.
 
-| Canal | Index | Signification |
-|-------|-------|---------------|
-| 0 | 0–24 | Pièces du joueur courant (1.0 si présente, 0.0 sinon) |
-| 1 | 25–49 | Pièces de l'adversaire (1.0 si présente, 0.0 sinon) |
-| 2 | 50–74 | Position du bobail (1.0 à la position du bobail, 0.0 ailleurs) |
+
+| Canal | Index | Signification                                                  |
+| ----- | ----- | -------------------------------------------------------------- |
+| 0     | 0–24  | Pièces du joueur courant (1.0 si présente, 0.0 sinon)          |
+| 1     | 25–49 | Pièces de l'adversaire (1.0 si présente, 0.0 sinon)            |
+| 2     | 50–74 | Position du bobail (1.0 à la position du bobail, 0.0 ailleurs) |
+
 
 **Mapping des cases :**
+
 ```
 Index :  0 |  1 |  2 |  3 |  4
          5 |  6 |  7 |  8 |  9
@@ -147,10 +163,12 @@ Position (ligne r, colonne c) → index `r * 5 + c`
 
 Encodage `(case_départ, case_arrivée)` : `from_cell * 25 + to_cell`
 
-| Phase | Actions possibles |
-|-------|-------------------|
-| Phase bobail | Déplacements du bobail (1 case, 8 directions) |
-| Phase pièce | Déplacements d'une pièce (glissement maximal dans 1 direction) |
+
+| Phase        | Actions possibles                                              |
+| ------------ | -------------------------------------------------------------- |
+| Phase bobail | Déplacements du bobail (1 case, 8 directions)                  |
+| Phase pièce  | Déplacements d'une pièce (glissement maximal dans 1 direction) |
+
 
 **Taille de l'espace d'actions :** 625 (25 × 25)
 
