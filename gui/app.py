@@ -43,13 +43,13 @@ AGENTS_WITHOUT_MODELS = {"random", "human"}
 MAX_MODEL_BUTTONS = 4
 
 
-def run():
+def run(debug: bool = False):
     pygame.init()
     screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
     pygame.display.set_caption("DRL Project — Game GUI")
     clock = pygame.time.Clock()
 
-    app = App(screen, clock)
+    app = App(screen, clock, debug=debug)
     app.main_loop()
     pygame.quit()
 
@@ -81,9 +81,11 @@ class App:
     STATE_PLAYING = 1
     STATE_GAME_OVER = 2
 
-    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock):
+    def __init__(self, screen: pygame.Surface, clock: pygame.time.Clock,
+                 debug: bool = False):
         self.screen = screen
         self.clock = clock
+        self.debug = debug
         self.font_lg = pygame.font.SysFont("Arial", 28, bold=True)
         self.font_md = pygame.font.SysFont("Arial", 20)
         self.font_sm = pygame.font.SysFont("Arial", 16)
@@ -597,6 +599,10 @@ class App:
             self._handle_gameover_click(mouse_pos)
 
     def _handle_key(self, key):
+        # Echap pour revenir au menu depuis n'importe quel ecran de jeu
+        if key == pygame.K_ESCAPE and self.state in (self.STATE_PLAYING, self.STATE_GAME_OVER):
+            self.state = self.STATE_MENU
+            return
         if self.state == self.STATE_PLAYING and self._is_human_turn():
             action = self._key_to_action(key)
             if action is not None and action in self.env.available_actions():
@@ -615,6 +621,10 @@ class App:
         return None
 
     def _handle_game_click(self, mouse_pos):
+        # Bouton retour au menu pendant la partie
+        if hasattr(self, "_back_btn") and self._back_btn.clicked(mouse_pos):
+            self.state = self.STATE_MENU
+            return
         if not self._is_human_turn():
             return
         if self.env_name == "tictactoe":
@@ -750,6 +760,14 @@ class App:
             self.screen.blit(txt, (panel_x + 15, y))
             y += 20
         y += 10
+
+        # --- Features strategiques Bobail (toujours visibles) ---
+        if self.env is not None and self.env_name == "bobail":
+            y = self._draw_bobail_features(panel_x, y)
+
+        # --- Encoding brut (uniquement avec --debug) ---
+        if self.debug and self.env is not None:
+            y = self._draw_encoding_debug(panel_x, y)
 
         # Bouton retour au menu
         self._back_btn = Button(
@@ -922,3 +940,82 @@ class App:
             txt_bot = self.font_sm.render("v", True, (ACCENT[0], ACCENT[1], ACCENT[2], 80))
             self.screen.blit(txt_top, txt_top.get_rect(center=(x_top, board_rect.y - 12)))
             self.screen.blit(txt_bot, txt_bot.get_rect(center=(x_bot, board_rect.y + board_rect.height + 12)))
+
+
+    def _draw_bobail_features(self, panel_x: int, y: int) -> int:
+        """Affiche les features strategiques de Bobail dans le cadran droit."""
+        from environments.bobail import PHASE_PIECE
+
+        pygame.draw.line(self.screen, DARK_GRAY,
+                         (panel_x + 10, y), (panel_x + 200, y))
+        y += 8
+
+        player = self.env.current_player()
+        p_label = self.font_sm.render(f"P{player + 1} :", True, ACCENT)
+        self.screen.blit(p_label, (panel_x + 15, y))
+        y += 20
+
+        state = self.env.state_description()
+        phase = state[-5]
+        dist_my = state[-4]
+        dist_opp = state[-3]
+        mobilite = state[-2]
+        premier_tour = state[-1]
+
+        phase_label = "Piece" if phase == float(PHASE_PIECE) else "Bobail"
+        infos = [
+            ("Phase", phase_label),
+            ("Dist. home", f"{dist_my:.2f}"),
+            ("Dist. adv", f"{dist_opp:.2f}"),
+            ("Mobilite", f"{mobilite:.2f}"),
+            ("1er tour", "oui" if premier_tour > 0.5 else "non"),
+        ]
+        for label, value in infos:
+            txt = self.font_sm.render(f"{label}: {value}", True, GRAY)
+            self.screen.blit(txt, (panel_x + 15, y))
+            y += 18
+        y += 5
+        return y
+
+    def _draw_encoding_debug(self, panel_x: int, y: int) -> int:
+        """Affiche le vecteur d'etat brut tel que vu par l'agent (mode --debug)."""
+        pygame.draw.line(self.screen, DARK_GRAY,
+                         (panel_x + 10, y), (panel_x + 200, y))
+        y += 5
+        titre = self.font_sm.render("Encoding (debug)", True, ACCENT)
+        self.screen.blit(titre, (panel_x + 15, y))
+        y += 20
+
+        state = self.env.state_description()
+        player = self.env.current_player()
+        player_txt = self.font_sm.render(f"P{player + 1} — dim={len(state)}",
+                                         True, GRAY)
+        self.screen.blit(player_txt, (panel_x + 15, y))
+        y += 18
+
+        # Afficher le vecteur en lignes de 10 valeurs
+        font_xs = pygame.font.SysFont("Courier", 11)
+        max_y = WINDOW_H - 80  # garder de la place pour le bouton retour
+        vals_per_line = 10
+        for i in range(0, len(state), vals_per_line):
+            if y > max_y:
+                dots = font_xs.render("...", True, DARK_GRAY)
+                self.screen.blit(dots, (panel_x + 15, y))
+                y += 14
+                break
+            chunk = state[i:i + vals_per_line]
+            # Format compact : 0 -> '.', 1 -> '1', floats -> valeur
+            parts = []
+            for v in chunk:
+                if v == 0.0:
+                    parts.append(".")
+                elif v == 1.0:
+                    parts.append("1")
+                else:
+                    parts.append(f"{v:.1f}")
+            line_str = " ".join(parts)
+            idx_label = f"{i:>3}: "
+            txt = font_xs.render(idx_label + line_str, True, DARK_GRAY)
+            self.screen.blit(txt, (panel_x + 10, y))
+            y += 14
+        return y

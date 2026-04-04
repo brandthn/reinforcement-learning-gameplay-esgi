@@ -155,7 +155,20 @@ class BobailEnv(Environment):
         return moves
 
     def state_description(self) -> np.ndarray:
-        """3 canaux de 25 : pieces du joueur courant, pieces adverses, bobail."""
+        """3 canaux de 25 + 5 features strategiques = 80 dimensions.
+
+        Canaux spatiaux (75) :
+          - pieces du joueur courant (one-hot 25)
+          - pieces adverses (one-hot 25)
+          - position du bobail (one-hot 25)
+
+        Features strategiques (5) :
+          - phase courante (0 = bobail, 1 = piece)
+          - distance normalisee du bobail vers ma rangee maison
+          - distance normalisee du bobail vers la rangee maison adverse
+          - mobilite normalisee (nb de coups legaux / max theorique)
+          - indicateur de premier tour
+        """
         my_pieces = np.zeros(NUM_CELLS, dtype=np.float32)
         opp_pieces = np.zeros(NUM_CELLS, dtype=np.float32)
         bobail = np.zeros(NUM_CELLS, dtype=np.float32)
@@ -166,13 +179,35 @@ class BobailEnv(Environment):
             opp_pieces[idx] = 1.0
         bobail[self._bobail] = 1.0
 
-        return np.concatenate([my_pieces, opp_pieces, bobail])
+        # -- Features strategiques --
+        phase = float(self._phase)
+
+        # Rangee du bobail
+        br = self._bobail // BOARD_SIZE
+        # J0 veut amener le bobail en ligne 4, J1 en ligne 0
+        my_home = 4 if self._current == 0 else 0
+        opp_home = 0 if self._current == 0 else 4
+        dist_my = abs(br - my_home) / (BOARD_SIZE - 1)
+        dist_opp = abs(br - opp_home) / (BOARD_SIZE - 1)
+
+        # Mobilite : nombre de coups legaux normalise
+        # Le max theorique est ~40 (5 pieces x 8 directions) pour la phase piece
+        nb_legal = len(self.available_actions())
+        mobilite = nb_legal / 40.0
+
+        premier_tour = float(self._first_turn)
+
+        extras = np.array(
+            [phase, dist_my, dist_opp, mobilite, premier_tour],
+            dtype=np.float32,
+        )
+        return np.concatenate([my_pieces, opp_pieces, bobail, extras])
 
     def action_space_size(self) -> int:
         return NUM_CELLS * NUM_CELLS
 
     def state_space_size(self) -> int:
-        return NUM_CELLS * 3
+        return NUM_CELLS * 3 + 5  # 75 spatiaux + 5 features strategiques
 
     def is_adversarial(self) -> bool:
         return True
