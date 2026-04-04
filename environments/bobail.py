@@ -71,12 +71,18 @@ class BobailEnv(Environment):
             # Ligne du bobail apres le deplacement
             br, _ = _idx_to_rc(self._bobail)
             # Camp J0 = ligne 4, Camp J1 = ligne 0
-            home_row = 4 if self._current == 0 else 0
-            # Bobail sur la rangee maison du joueur courant = victoire pour le joueur courant
-            if br == home_row:
+            # Verifier si le bobail atteint la rangee maison de l'un ou l'autre joueur
+            if br == 4:
+                # Rangee maison de J0 — J0 gagne
                 self._done = True
-                # Convention : current = perdant apres la fin de partie
-                self._current = 1 - self._current
+                # Convention : current = perdant
+                self._current = 1  # J1 perd
+                return self.state_description(), 1.0, True
+            if br == 0:
+                # Rangee maison de J1 — J1 gagne
+                self._done = True
+                # Convention : current = perdant
+                self._current = 0  # J0 perd
                 return self.state_description(), 1.0, True
 
             # Pas de victoire, on continue a la phase piece
