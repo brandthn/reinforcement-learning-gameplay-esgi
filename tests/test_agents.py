@@ -103,8 +103,12 @@ class TestSaveLoad:
     def agent_name(self, request):
         return request.param
 
+    STATELESS_AGENTS = {"random"}
+
     def test_save_load_deterministic(self, agent_name):
         """Apres save+load, l'action greedy sur le meme etat est identique."""
+        if agent_name in self.STATELESS_AGENTS:
+            pytest.skip(f"{agent_name} has no learnable state to persist")
         env = get_env("line_world")
         agent = _make_agent(agent_name, env)
 

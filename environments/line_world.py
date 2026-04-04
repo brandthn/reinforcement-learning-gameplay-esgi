@@ -4,14 +4,16 @@ from .base import Environment
 
 
 class LineWorldEnv(Environment):
-    """Grille 1D : l'agent demarre a la case 0, objectif a la case N-1."""
+    """Grille 1D : l'agent demarre au milieu, case 0 = defaite (-1), case N-1 = victoire (+1)."""
 
     def __init__(self, size: int = 5):
         self._size = size
-        self._pos = 0
+        self._pos = size // 2
+        self._done = False
 
     def reset(self) -> np.ndarray:
-        self._pos = 0
+        self._pos = self._size // 2
+        self._done = False
         return self.state_description()
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool]:
@@ -20,11 +22,17 @@ class LineWorldEnv(Environment):
         elif action == 1:
             self._pos = min(self._size - 1, self._pos + 1)
 
-        done = self._pos == self._size - 1
-        reward = 1.0 if done else 0.0
-        return self.state_description(), reward, done
+        if self._pos == self._size - 1:
+            self._done = True
+            return self.state_description(), 1.0, True
+        elif self._pos == 0:
+            self._done = True
+            return self.state_description(), -1.0, True
+        return self.state_description(), 0.0, False
 
     def available_actions(self) -> list[int]:
+        if self._done:
+            return []
         actions = []
         if self._pos > 0:
             actions.append(0)
@@ -45,6 +53,7 @@ class LineWorldEnv(Environment):
 
     def render_text(self) -> str:
         cells = ['.' for _ in range(self._size)]
+        cells[0] = 'X'
+        cells[-1] = 'G'
         cells[self._pos] = 'A'
-        cells[-1] = 'G' if self._pos != self._size - 1 else 'A'
         return '[' + '|'.join(cells) + ']'

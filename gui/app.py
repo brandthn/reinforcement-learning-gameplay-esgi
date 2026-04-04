@@ -509,6 +509,10 @@ class App:
         self.game_state = self.env.reset()
         self.done = False
         self.last_reward = 0.0
+        self.cumulative_reward = 0.0
+        self.step_count = 0
+        self.game_start_time = time.time()
+        self.game_elapsed = 0.0
         self.winner_text = ""
         self.last_ai_step_time = pygame.time.get_ticks()
         self.selected_piece = None
@@ -542,6 +546,8 @@ class App:
             return
         action = agent.act(state, available)
         self.game_state, self.last_reward, self.done = self.env.step(action)
+        self.step_count += 1
+        self.cumulative_reward += self.last_reward
         if self.done:
             self._set_game_over()
 
@@ -552,6 +558,8 @@ class App:
         available = self.env.available_actions()
         _ = agent.act(state, available)
         self.game_state, self.last_reward, self.done = self.env.step(action)
+        self.step_count += 1
+        self.cumulative_reward += self.last_reward
         self.selected_piece = None
         self.valid_moves_from_selected = {}
         self.last_ai_step_time = pygame.time.get_ticks()
@@ -560,18 +568,23 @@ class App:
 
     def _set_game_over(self):
         self.state = self.STATE_GAME_OVER
-        if self.last_reward > 0:
-            # Le joueur qui vient d'agir a gagne ; mais current_player a deja change
-            winner = 1 - self.env.current_player() if self.env.is_adversarial() else 0
-            self.winner_text = f"Player {winner + 1} wins!"
-        elif self.last_reward < 0:
-            winner = self.env.current_player()
-            self.winner_text = f"Player {winner + 1} wins!"
-        else:
-            if self.env.is_adversarial():
-                self.winner_text = "Draw!"
+        self.game_elapsed = time.time() - self.game_start_time
+        if self.env.is_adversarial():
+            if self.last_reward > 0:
+                winner = 1 - self.env.current_player()
+                self.winner_text = f"Player {winner + 1} wins!"
+            elif self.last_reward < 0:
+                winner = self.env.current_player()
+                self.winner_text = f"Player {winner + 1} wins!"
             else:
-                self.winner_text = "Game over!"
+                self.winner_text = "Draw!"
+        else:
+            if self.last_reward > 0:
+                self.winner_text = "Victory! (+1)"
+            elif self.last_reward < 0:
+                self.winner_text = "Defeat! (-1)"
+            else:
+                self.winner_text = "Game over (0)"
 
     # --- Gestion des entrees ---
 
@@ -706,9 +719,10 @@ class App:
 
         y += 15
         if self.done:
-            wt = self.font_md.render(self.winner_text, True, YELLOW)
+            wt_color = GREEN if self.last_reward > 0 else (RED if self.last_reward < 0 else YELLOW)
+            wt = self.font_md.render(self.winner_text, True, wt_color)
             self.screen.blit(wt, (panel_x + 15, y))
-            y += 40
+            y += 35
         elif self._is_human_turn():
             hint = self.font_sm.render("Your turn", True, GREEN)
             self.screen.blit(hint, (panel_x + 15, y))
@@ -720,6 +734,22 @@ class App:
                 hint2 = self.font_sm.render(phase_text, True, GRAY)
                 self.screen.blit(hint2, (panel_x + 15, y + 20))
             y += 45
+
+        # --- Metrics ---
+        pygame.draw.line(self.screen, DARK_GRAY, (panel_x + 10, y), (panel_x + 200, y))
+        y += 10
+
+        elapsed = self.game_elapsed if self.done else time.time() - self.game_start_time
+        metrics = [
+            ("Steps", str(self.step_count)),
+            ("Score", f"{self.cumulative_reward:+.1f}"),
+            ("Time", f"{elapsed:.1f}s"),
+        ]
+        for label, value in metrics:
+            txt = self.font_sm.render(f"{label}: {value}", True, GRAY)
+            self.screen.blit(txt, (panel_x + 15, y))
+            y += 20
+        y += 10
 
         # Bouton retour au menu
         self._back_btn = Button(
@@ -747,6 +777,8 @@ class App:
                 color = ACCENT
             elif i == size - 1:
                 color = GREEN
+            elif i == 0:
+                color = RED
             pygame.draw.rect(self.screen, color, (x, start_y, cell_w, cell_h))
             pygame.draw.rect(self.screen, BG, (x, start_y, cell_w, cell_h), 2)
 
@@ -755,6 +787,9 @@ class App:
                 self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, start_y + cell_h // 2)))
             elif i == size - 1:
                 txt = self.font_lg.render("G", True, WHITE)
+                self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, start_y + cell_h // 2)))
+            elif i == 0:
+                txt = self.font_lg.render("X", True, WHITE)
                 self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, start_y + cell_h // 2)))
 
     # --- GridWorld (Monde en grille) ---
@@ -766,6 +801,11 @@ class App:
         cell_w = board_rect.width // cols
         cell_h = board_rect.height // rows
 
+        lose_r = env.LOSE_INDEX // cols
+        lose_c = env.LOSE_INDEX % cols
+        win_r = env.WIN_INDEX // cols
+        win_c = env.WIN_INDEX % cols
+
         for r in range(rows):
             for c in range(cols):
                 x = board_rect.x + c * cell_w
@@ -773,16 +813,21 @@ class App:
                 color = BOARD_LIGHT if (r + c) % 2 == 0 else BOARD_DARK
                 if r == env._row and c == env._col:
                     color = ACCENT
-                elif r == rows - 1 and c == cols - 1:
+                elif r == win_r and c == win_c:
                     color = GREEN
+                elif r == lose_r and c == lose_c:
+                    color = RED
                 pygame.draw.rect(self.screen, color, (x, y, cell_w, cell_h))
                 pygame.draw.rect(self.screen, BG, (x, y, cell_w, cell_h), 1)
 
                 if r == env._row and c == env._col:
                     txt = self.font_lg.render("A", True, WHITE)
                     self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, y + cell_h // 2)))
-                elif r == rows - 1 and c == cols - 1:
+                elif r == win_r and c == win_c:
                     txt = self.font_lg.render("G", True, WHITE)
+                    self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, y + cell_h // 2)))
+                elif r == lose_r and c == lose_c:
+                    txt = self.font_lg.render("X", True, WHITE)
                     self.screen.blit(txt, txt.get_rect(center=(x + cell_w // 2, y + cell_h // 2)))
 
     # --- TicTacToe (Morpion) ---
