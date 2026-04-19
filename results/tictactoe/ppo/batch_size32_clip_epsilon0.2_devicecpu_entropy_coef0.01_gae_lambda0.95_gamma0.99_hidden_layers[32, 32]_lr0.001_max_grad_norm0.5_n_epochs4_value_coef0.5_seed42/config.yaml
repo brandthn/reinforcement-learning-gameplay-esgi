@@ -18,13 +18,13 @@ eval:
   - 1000
   - 10000
   - 50000
+  - 70000
+  - 100000
   num_games: 100
 opponent: random
-seed: 123
+seed: 42
 seeds:
 - 42
-- 123
-- 456
 training:
   max_steps_per_episode: 50
-  num_episodes: 50000
+  num_episodes: 100000
