@@ -86,6 +86,7 @@ class PPOAgent(Agent):
         n_epochs: int = 4,
         batch_size: int = 64,
         max_grad_norm: float = 0.5,
+        device: str = "cpu"
     ):
         self._state_size = state_size
         self._action_size = action_size
@@ -97,13 +98,14 @@ class PPOAgent(Agent):
         self._n_epochs = n_epochs
         self._batch_size = batch_size
         self._max_grad_norm = max_grad_norm
+        self._device = torch.device(device)
 
         hidden = hidden_layers or [128, 128]
 
         # Deux réseaux séparés : plus facile à déboguer et à configurer
         # indépendamment (lr critique plus élevé si nécessaire)
-        self._actor: nn.Sequential = build_mlp(state_size, action_size, hidden)
-        self._critic: nn.Sequential = build_mlp(state_size, 1, hidden)
+        self._actor: nn.Sequential = build_mlp(state_size, action_size, hidden).to(self._device)
+        self._critic: nn.Sequential = build_mlp(state_size, 1, hidden).to(self._device)
 
         self._optimizer = optim.Adam(
             list(self._actor.parameters()) + list(self._critic.parameters()),
@@ -146,7 +148,8 @@ class PPOAgent(Agent):
         avant le softmax, garantissant que p(action illégale) = 0.
         Cf. D-012 : le masquage ne s'applique qu'ici, pas dans _compute_gae().
         """
-        state_t = torch.FloatTensor(state).unsqueeze(0)  # (1, state_size)
+        # state_t = torch.FloatTensor(state).unsqueeze(0)  # (1, state_size)
+        state_t = torch.as_tensor(state, dtype=torch.float32, device=self._device).unsqueeze(0)
 
         with torch.no_grad():
             logits = self._actor(state_t).squeeze(0)          # (action_size,)
@@ -234,10 +237,22 @@ class PPOAgent(Agent):
             path,
         )
 
+    # def load(self, path: str) -> None:
+    #     ckpt = torch.load(path, map_location="cpu")
+    #     self._actor.load_state_dict(ckpt["actor"])
+    #     self._critic.load_state_dict(ckpt["critic"])
+    #     self._optimizer.load_state_dict(ckpt["optimizer"])
+    #     self._step_count = ckpt.get("step_count", 0)
+    
     def load(self, path: str) -> None:
         ckpt = torch.load(path, map_location="cpu")
+
         self._actor.load_state_dict(ckpt["actor"])
+        self._actor.to(self._device)
+
         self._critic.load_state_dict(ckpt["critic"])
+        self._critic.to(self._device)
+
         self._optimizer.load_state_dict(ckpt["optimizer"])
         self._step_count = ckpt.get("step_count", 0)
 
@@ -311,17 +326,34 @@ class PPOAgent(Agent):
             advantages = (advantages - advantages.mean()) / adv_std
 
         # ── Construction des tenseurs une seule fois ──────────────────────
-        states_t       = torch.FloatTensor(
+        # states_t       = torch.FloatTensor(
+        #     np.stack([tr["state"] for tr in self._trajectory])
+        # )   # (T, state_size)
+
+        states_t = torch.as_tensor(
             np.stack([tr["state"] for tr in self._trajectory])
-        )   # (T, state_size)
-        actions_t      = torch.LongTensor(
-            [tr["action"] for tr in self._trajectory]
-        )   # (T,)
-        old_log_probs_t = torch.FloatTensor(
+            , dtype=torch.float32, device=self._device
+        )
+        
+        # actions_t      = torch.LongTensor(
+        #     [tr["action"] for tr in self._trajectory]
+        # )   # (T,)
+        actions_t    = torch.as_tensor([tr["action"] for tr in self._trajectory],
+                                dtype=torch.long,    device=self._device)
+
+        # old_log_probs_t = torch.FloatTensor(
+        #     [tr["log_prob"] for tr in self._trajectory]
+        # )   # (T,)
+        old_log_probs_t = torch.as_tensor(
             [tr["log_prob"] for tr in self._trajectory]
-        )   # (T,)
-        returns_t      = torch.FloatTensor(returns)      # (T,)
-        advantages_t   = torch.FloatTensor(advantages)   # (T,)
+            , dtype=torch.float32, device=self._device
+        )# (T,)
+
+
+        # returns_t = torch.FloatTensor(returns)      # (T,)
+        returns_t = torch.as_tensor(returns, dtype=torch.float32, device=self._device)
+        # advantages_t   = torch.FloatTensor(advantages)   # (T,)
+        advantages_t = torch.as_tensor(advantages, dtype=torch.float32, device=self._device)
 
         T       = len(self._trajectory)
         indices = np.arange(T)

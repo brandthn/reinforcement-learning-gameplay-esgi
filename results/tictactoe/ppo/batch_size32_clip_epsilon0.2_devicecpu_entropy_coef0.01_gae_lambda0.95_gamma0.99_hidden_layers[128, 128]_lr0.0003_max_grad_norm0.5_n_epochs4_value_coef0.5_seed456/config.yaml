@@ -1,0 +1,30 @@
+agent: ppo
+agent_params:
+  batch_size: 32
+  clip_epsilon: 0.2
+  entropy_coef: 0.01
+  gae_lambda: 0.95
+  gamma: 0.99
+  hidden_layers:
+  - 128
+  - 128
+  lr: 0.0003
+  max_grad_norm: 0.5
+  n_epochs: 4
+  value_coef: 0.5
+env: tictactoe
+eval:
+  checkpoints:
+  - 1000
+  - 10000
+  - 50000
+  num_games: 100
+opponent: random
+seed: 456
+seeds:
+- 42
+- 123
+- 456
+training:
+  max_steps_per_episode: 50
+  num_episodes: 50000
