@@ -1,0 +1,29 @@
+# configs/ppo/line_world.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# PPO A2C style — LineWorld N=5 (single-player, env le plus simple)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+env: line_world
+agent: ppo
+ 
+agent_params:
+  lr: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.02
+  value_coef: 0.5
+  hidden_layers: [32, 32]   # Réseau minimal pour env trivial
+  n_epochs: 4
+  batch_size: 16
+  max_grad_norm: 0.5
+ 
+training:
+  num_episodes: 5000
+  max_steps_per_episode: 50
+ 
+eval:
+  checkpoints: [1000, 5000]
+  num_games: 100
+ 
+seeds: [42, 123, 456]
