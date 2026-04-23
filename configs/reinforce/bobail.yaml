@@ -1,0 +1,18 @@
+env: bobail
+agent: reinforce
+opponent: random
+
+agent_params:
+  lr: 0.0005
+  gamma: 0.99
+  hidden_layers: [256, 128]
+
+training:
+  num_episodes: 5000
+  max_steps_per_episode: 500
+
+eval:
+  checkpoints: [500, 1000, 2000, 3000, 4000, 5000]
+  num_games: 50
+
+seeds: [42, 123]
