@@ -21,7 +21,8 @@ Conformité avec le projet:
   - Compatible SelfPlayTrainer (le pending_state est géré côté Trainer,
     l'agent reçoit ses transitions via observe() normalement)
 """
-
+# utilisé pour les annotations de type dans les méthodes
+# sans avoir besoin d'importer List et Optional au début du fichier.
 from __future__ import annotations
 
 import numpy as np
@@ -30,7 +31,6 @@ import torch.nn as nn
 import torch.optim as optim
 from typing import List, Optional
 
-# Adapter l'import selon l'emplacement réel de votre package
 from agents.base import Agent
 from training.networks import build_mlp
 
@@ -51,15 +51,16 @@ class PPOAgent(Agent):
         Facteur de discount.
     gae_lambda : float
         Paramètre λ du GAE (Generalized Advantage Estimation).
-        0 → TD(0) pur (biais fort, variance faible).
-        1 → Monte-Carlo pur (biais nul, variance forte).
-        0.95 est le réglage standard.
+        0 → TD(0) pur (biais fort, variance faible, aucune importance pour les TD futures).
+        1 → Monte-Carlo pur (biais nul, variance forte : on regarde tous les TD futures et ca cause la variance).
     clip_epsilon : float
-        Borne du clipping PPO (ratio ∈ [1-ε, 1+ε]).
+        Borne du clipping PPO (ratio ∈ [1-ε, 1+ε] : quelle percentage de changement on est prêt à accepter ?).
     entropy_coef : float
-        Coefficient du bonus d'entropie (encourage l'exploration).
+        Coefficient du bonus d'entropie (encourage l'exploration -> similaire à l'epsilon pour les méthodes epsilon-greedy).
     value_coef : float
-        Coefficient de la perte critique dans la perte totale.
+        Avec quelle aggressivité on veut mettre à jour le critic par rapport à l'acteur (équilibrage des pertes).
+            Haut -> meilleur critic mais reste trop conservateur (petits pas de mise à jour),
+            Bas -> critic plus approximatif,  apprentissage plus rapide mais plus instable
     hidden_layers : list[int]
         Architecture des MLP actor et critic.
     n_epochs : int
@@ -82,7 +83,7 @@ class PPOAgent(Agent):
         clip_epsilon: float = 0.2,
         entropy_coef: float = 0.01,
         value_coef: float = 0.5,
-        hidden_layers: Optional[List[int]] = None,
+        hidden_layers: List[int] = None,
         n_epochs: int = 4,
         batch_size: int = 64,
         max_grad_norm: float = 0.5,
@@ -102,11 +103,16 @@ class PPOAgent(Agent):
 
         hidden = hidden_layers or [128, 128]
 
-        # Deux réseaux séparés : plus facile à déboguer et à configurer
-        # indépendamment (lr critique plus élevé si nécessaire)
+        # Deux réseaux séparés : plus facile à déboguer et à configurer indépendamment
+        #  (lr critique plus élevé si nécessaire)
         self._actor: nn.Sequential = build_mlp(state_size, action_size, hidden).to(self._device)
         self._critic: nn.Sequential = build_mlp(state_size, 1, hidden).to(self._device)
 
+        # on essaie de faire une seule instance d'optimizer pour les deux réseaux, on va agir sur le
+        # c_value pour compenser le fait que les deux réseaux ont des échelles de pertes différentes (value_coef)
+       
+        # update après premières experimentations : effectivement, ca semble que la policy soit trop conservative
+        # à comprendre si ca est à cause d'un learning rate trop bas ou d'un value_coef trop élevé (ou les deux)
         self._optimizer = optim.Adam(
             list(self._actor.parameters()) + list(self._critic.parameters()),
             lr=lr,
@@ -123,14 +129,12 @@ class PPOAgent(Agent):
         self._trajectory: list[dict] = []
 
         # Stocke temporairement les sorties de act() jusqu'au prochain observe()
+        # important parce que souvnet observe() est appelé avec un délai (ex: SelfPlayTrainer)
+        # et on doit garder les infos de la transition en attendant
         self._pending: Optional[dict] = None
 
         # Compteur global de steps (pour statistiques / logs externes)
         self._step_count: int = 0
-
-    # ────────────────────────────────────────────────────────────────────────
-    # Interface Agent
-    # ────────────────────────────────────────────────────────────────────────
 
     def act(
         self,
@@ -145,17 +149,22 @@ class PPOAgent(Agent):
         En mode inference : action greedy (argmax des logits masqués).
 
         Le masquage consiste à mettre -inf sur les logits des actions illégales
-        avant le softmax, garantissant que p(action illégale) = 0.
-        Cf. D-012 : le masquage ne s'applique qu'ici, pas dans _compute_gae().
+        avant le softmax, excluant les actions illegales
         """
-        # state_t = torch.FloatTensor(state).unsqueeze(0)  # (1, state_size)
         state_t = torch.as_tensor(state, dtype=torch.float32, device=self._device).unsqueeze(0)
 
-        with torch.no_grad():
-            logits = self._actor(state_t).squeeze(0)          # (action_size,)
-            value  = self._critic(state_t).squeeze().item()   # scalaire
+        # sans no_grad, on aurait des calculs de gradients inutiles et coûteux à chaque action
+        # squeeze(0) pour enlever la dimension batch (1, action_size) -> (action_size,)
+        # .item() pour convertir les tenseurs scalaires en float ou int natifs (log_prob, value, action)
+        # on veut supprimer les dimensions à 1 pour simplifier les calculs et les stockages dans la trajectoire,
+        # et on veut des types natifs avec .item(), donc float et non plus tenseurs, pour éviter les problèmes de sérialisation
+        # ou de compatibilité avec d'autres parties du code qui attendent des floats ou ints classiques.
+        with torch.no_grad(): 
+            logits = self._actor(state_t).squeeze(0)
+            value  = self._critic(state_t).squeeze().item()
 
-        # ── Masquage des actions illégales ────────────────────────────────
+        # je masque les actions illégales
+        # tenseur de size (action_size,) rempli de -inf, puis je mets 0 pour les actions disponibles
         mask = torch.full((self._action_size,), float("-inf"))
         mask[available_actions] = 0.0
         masked_logits = logits + mask
@@ -280,7 +289,7 @@ class PPOAgent(Agent):
         returns    : np.ndarray (T,) — targets pour le critic (A_t + V(s_t))
         """
         T = len(self._trajectory)
-        advantages = np.zeros(T, dtype=np.float32)
+        advantages = np.zeros(T, dtype=np.float32) # une seule allocations pour les avantages
 
         gae        = 0.0
         next_value = 0.0   # Bootstrap à 0 car dernier step est done=True

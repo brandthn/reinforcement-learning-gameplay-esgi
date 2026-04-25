@@ -4,26 +4,26 @@ agent_params:
   clip_epsilon: 0.2
   entropy_coef: 0.01
   gae_lambda: 0.95
-  gamma: 0.99
+  gamma: 0.93
   hidden_layers:
-  - 128
-  - 128
-  lr: 0.0003
+  - 32
+  - 16
+  lr: 0.001
   max_grad_norm: 0.5
-  n_epochs: 6
-  value_coef: 0.5
+  n_epochs: 4
+  value_coef: 0.7
 env: bobail
 eval:
   checkpoints:
   - 1000
+  - 5000
   - 10000
-  - 100000
-  num_games: 100
+  num_games: 1000
 opponent: random
-seed: 42
+seed: 7
 seeds:
-- 42
-- 123
+- 7
+- 14
 training:
-  max_steps_per_episode: 125
-  num_episodes: 1000000
+  max_steps_per_episode: 250
+  num_episodes: 10000
