@@ -46,6 +46,15 @@ AGENT_TEST_PARAMS = {
         "gamma": 0.99,
         "hidden_layers": [32, 32],
     },
+    "random_rollout": {
+        "n_rollouts_per_action": 3,
+        "max_rollout_depth": 50,
+    },
+    "mcts": {
+        "n_simulations": 5,
+        "c_uct": 1.41,
+        "max_rollout_depth": 50,
+    },
 }
 
 ALL_ENVS = ["line_world", "grid_world", "tictactoe", "bobail"]
@@ -125,7 +134,7 @@ class TestSaveLoad:
     def agent_name(self, request):
         return request.param
 
-    STATELESS_AGENTS = {"random"}
+    STATELESS_AGENTS = {"random", "random_rollout", "mcts"}
 
     def test_save_load_deterministic(self, agent_name):
         """Apres save+load, l'action greedy sur le meme etat est identique."""
