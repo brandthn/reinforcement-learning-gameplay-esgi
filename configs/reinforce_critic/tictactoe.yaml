@@ -1,0 +1,19 @@
+env: tictactoe
+agent: reinforce_critic
+opponent: random
+
+agent_params:
+  lr: 0.001
+  critic_lr: 0.001
+  gamma: 0.99
+  hidden_layers: [128, 128]
+
+training:
+  num_episodes: 100000
+  max_steps_per_episode: 20
+
+eval:
+  checkpoints: [1000, 10000, 20000, 30000, 40000, 50000,100000]
+  num_games: 100
+
+seeds: [42, 123]

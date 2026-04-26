@@ -37,6 +37,18 @@ def set_seed(seed: int):
     except ImportError:
         pass
 
+# ── Add this function next to set_seed() ─────────────────────────────────────
+def get_device() -> str:
+    """Return 'cuda' if a GPU is available, 'mps' on Apple Silicon, else 'cpu'."""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return "cuda"
+        if torch.backends.mps.is_available():   # Apple Silicon
+            return "mps"
+    except ImportError:
+        pass
+    return "cpu"
 
 def build_results_dir(base_dir: str, env_name: str, agent_name: str,
                       agent_params: dict, seed: int) -> str:
@@ -56,6 +68,11 @@ def train_single(config: dict, seed: int) -> dict:
     env_params = config.get("env_params", {})
     agent_name = config["agent"]
     agent_params = config.get("agent_params", {})
+
+    device = get_device()
+    print(f"Device: {device}")
+    
+    agent_params = {**agent_params, "device": device} #j'ai ajouté le device CUDA si possible
 
     env = get_env(env_name, **env_params)
     agent = get_agent(agent_name, env, agent_params)

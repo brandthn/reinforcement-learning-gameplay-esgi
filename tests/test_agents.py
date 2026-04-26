@@ -30,6 +30,21 @@ AGENT_TEST_PARAMS = {
         "epsilon_start": 1.0,
         "epsilon_end": 0.01,
         "epsilon_decay_steps": 100,
+    "reinforce": {
+        "lr": 0.001,
+        "gamma": 0.99,
+        "hidden_layers": [32, 32],
+    },
+    "reinforce_mean_baseline": {
+        "lr": 0.001,
+        "gamma": 0.99,
+        "hidden_layers": [32, 32],
+    },
+    "reinforce_critic": {
+        "lr": 0.001,
+        "critic_lr": 0.001,
+        "gamma": 0.99,
+        "hidden_layers": [32, 32],
     },
 }
 

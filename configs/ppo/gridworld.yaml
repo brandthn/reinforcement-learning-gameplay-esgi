@@ -1,0 +1,30 @@
+# configs/ppo/grid_world.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# PPO A2C style — GridWorld 5x5 (single-player)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+env: grid_world
+agent: ppo
+# Pas d'opponent → Trainer (single-player)
+ 
+agent_params:
+  lr: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.02       # entropie plus élevée : env simple, exploration utile
+  value_coef: 0.5
+  hidden_layers: [64, 64]
+  n_epochs: 4
+  batch_size: 32
+  max_grad_norm: 0.5
+ 
+training:
+  num_episodes: 20000
+  max_steps_per_episode: 200
+ 
+eval:
+  checkpoints: [1000, 10000, 20000]
+  num_games: 100
+ 
+seeds: [42, 123, 456]

@@ -1,0 +1,33 @@
+# configs/ppo/bobail.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# PPO A2C style — Bobail (adversarial)
+#
+# Bobail est l'env le plus complexe : state_size=75, action_size=625.
+# On utilise un réseau plus large et plus d'épisodes d'entraînement.
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+env: bobail
+agent: ppo
+opponent: random           # adversarial → SelfPlayTrainer
+ 
+agent_params:
+  lr: 1.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95         # λ GAE : compromis biais/variance
+  clip_epsilon: 0.2        # clipping PPO standard
+  entropy_coef: 0.05      # encourage l'exploration initiale
+  value_coef: 0.5          # pondération perte critic
+  hidden_layers: [256, 256]
+  n_epochs: 4            # passes d'optimisation par épisode
+  batch_size: 64
+  max_grad_norm: 0.5
+ 
+training:
+  num_episodes: 100000
+  max_steps_per_episode: 200
+ 
+eval:
+  checkpoints: [10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000]
+  num_games: 10000
+ 
+seeds: [1, 2]

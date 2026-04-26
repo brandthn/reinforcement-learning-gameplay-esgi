@@ -7,6 +7,10 @@ from .value_based.ddqn_er import DDQNERAgent
 from .value_based.ddqn_per import DDQNPERAgent
 from .planning.random_rollout import RandomRolloutAgent
 from .planning.mcts import MCTSAgent
+from .policy_based.reinforce import REINFORCEAgent
+from .policy_based.reinforce_mean_baseline import REINFORCEMeanBaselineAgent
+from .policy_based.reinforce_critic import REINFORCECriticAgent
+from .policy_gradient.ppo import PPOAgent
 
 AGENT_REGISTRY = {
     "random": RandomAgent,
@@ -18,6 +22,10 @@ AGENT_REGISTRY = {
     "ddqn_per": DDQNPERAgent,
     "random_rollout": RandomRolloutAgent,
     "mcts": MCTSAgent,
+    "reinforce": REINFORCEAgent,
+    "reinforce_mean_baseline": REINFORCEMeanBaselineAgent,
+    "reinforce_critic": REINFORCECriticAgent,
+    "ppo": PPOAgent,
 }
 
 # Agents de planification : besoin d'une reference a l'env pour cloner.
