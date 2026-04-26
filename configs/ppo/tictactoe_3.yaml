@@ -1,0 +1,30 @@
+# configs/ppo/tictactoe.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# PPO A2C style — TicTacToe (adversarial)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+env: tictactoe
+agent: ppo
+opponent: random
+ 
+agent_params:
+  lr: 1.0e-3
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.01
+  value_coef: 0.5
+  hidden_layers: [32, 32]
+  n_epochs: 4
+  batch_size: 32
+  max_grad_norm: 0.5
+ 
+training:
+  num_episodes: 1000000
+  max_steps_per_episode: 50
+ 
+eval:
+  checkpoints: [1000, 10000, 50000, 70000, 1000000]
+  num_games: 100
+ 
+seeds: [42, 123, 456]

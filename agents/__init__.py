@@ -8,6 +8,7 @@ from .value_based.ddqn_per import DDQNPERAgent
 from .policy_based.reinforce import REINFORCEAgent
 from .policy_based.reinforce_mean_baseline import REINFORCEMeanBaselineAgent
 from .policy_based.reinforce_critic import REINFORCECriticAgent
+from .policy_gradient.ppo import PPOAgent
 
 AGENT_REGISTRY = {
     "random": RandomAgent,
@@ -20,6 +21,7 @@ AGENT_REGISTRY = {
     "reinforce": REINFORCEAgent,
     "reinforce_mean_baseline": REINFORCEMeanBaselineAgent,
     "reinforce_critic": REINFORCECriticAgent,
+    "ppo": PPOAgent,
 }
 
 
