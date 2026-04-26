@@ -9,12 +9,12 @@ uv sync                                                        # installer les d
 
 uv run pytest                                                  # vérifier que tout fonctionne
 
-uv run python scripts/run_gui.py                              # lancer la GUI (PyGame)
+uv run scripts/run_gui.py                                     # lancer la GUI (PyGame)
 
-uv run python scripts/train.py configs/dqn/grid_world.yaml   # entraîner un agent
-uv run python scripts/train.py configs/dqn/grid_world.yaml --quick  # mode rapide (dev)
-uv run python scripts/train_all.py                            # tout entraîner
-uv run python scripts/evaluate_all.py                         # réévaluer tous les modèles
+uv run scripts/train.py configs/dqn/grid_world.yaml          # entraîner un agent
+uv run scripts/train.py configs/dqn/grid_world.yaml --quick  # mode rapide (dev)
+uv run scripts/train_all.py                                   # tout entraîner
+uv run scripts/evaluate_all.py                                # réévaluer tous les modèles
 uv run python scripts/promote_best.py --all                   # promouvoir les meilleurs modèles vers best/
 ```
 
@@ -28,7 +28,7 @@ uv run python scripts/promote_best.py --all                   # promouvoir les m
 uv sync
 ```
 
-Cela installe toutes les dépendances (`torch`, `numpy`, `pygame`, `pyyaml`) depuis `pyproject.toml` dans un environnement virtuel isolé géré par `uv`.
+Cela installe toutes les dépendances (`torch`, `numpy<2`, `pygame`, `pyyaml`) depuis `pyproject.toml` dans un environnement virtuel isolé géré par `uv`.
 
 ---
 
@@ -37,19 +37,19 @@ Cela installe toutes les dépendances (`torch`, `numpy`, `pygame`, `pyyaml`) dep
 Entraîner une seule expérience :
 
 ```bash
-uv run python scripts/train.py configs/dqn/grid_world.yaml
+uv run scripts/train.py configs/dqn/grid_world.yaml
 ```
 
 Entraîner toutes les expériences d'un agent :
 
 ```bash
-uv run python scripts/train_all.py configs/dqn/
+uv run scripts/train_all.py configs/dqn/
 ```
 
 Tout entraîner :
 
 ```bash
-uv run python scripts/train_all.py
+uv run scripts/train_all.py
 ```
 
 ---
@@ -161,7 +161,7 @@ Champ par champ :
 ### Entraîner une seule config
 
 ```bash
-uv run python scripts/train.py configs/ddqn_per/tictactoe.yaml
+uv run scripts/train.py configs/ddqn_per/tictactoe.yaml
 ```
 
 Cela entraîne `ddqn_per` sur `tictactoe` pour 100k épisodes, une fois par graine dans la config (ex: graines 42, 123, 456 = 3 runs). Résultats dans :
@@ -175,7 +175,7 @@ results/tictactoe/ddqn_per/..._seed456/
 ### Remplacer la graine
 
 ```bash
-uv run python scripts/train.py configs/dqn/grid_world.yaml --seed 99
+uv run scripts/train.py configs/dqn/grid_world.yaml --seed 99
 ```
 
 Ignore les graines de la config. Lance une seule fois avec la graine 99.
@@ -183,8 +183,8 @@ Ignore les graines de la config. Lance une seule fois avec la graine 99.
 ### Mode rapide (développement)
 
 ```bash
-uv run python scripts/train.py configs/dqn/grid_world.yaml --quick
-uv run python scripts/train.py configs/dqn/grid_world.yaml --quick --quick-episodes 500
+uv run scripts/train.py configs/dqn/grid_world.yaml --quick
+uv run scripts/train.py configs/dqn/grid_world.yaml --quick --quick-episodes 500
 ```
 
 Mode itération rapide : 1 graine, moins d'épisodes (défaut 1000), résultats dans `results_dev/`.
@@ -192,7 +192,7 @@ Mode itération rapide : 1 graine, moins d'épisodes (défaut 1000), résultats 
 ### Entraîner toutes les configs d'un agent
 
 ```bash
-uv run python scripts/train_all.py configs/dqn/
+uv run scripts/train_all.py configs/dqn/
 ```
 
 Lance `scripts/train.py` séquentiellement sur chaque `.yaml` dans `configs/dqn/`.
@@ -200,7 +200,7 @@ Lance `scripts/train.py` séquentiellement sur chaque `.yaml` dans `configs/dqn/
 ### Entraîner toutes les configs du projet
 
 ```bash
-uv run python scripts/train_all.py
+uv run scripts/train_all.py
 ```
 
 Trouve récursivement tous les fichiers `.yaml` sous `configs/` et entraîne chacun. Détecte automatiquement les configs sweep et les route vers `train_sweep.py`.
@@ -208,8 +208,8 @@ Trouve récursivement tous les fichiers `.yaml` sous `configs/` et entraîne cha
 ### Réévaluer les modèles sauvegardés
 
 ```bash
-uv run python scripts/evaluate_all.py
-uv run python scripts/evaluate_all.py --results-dir results --num-games 200
+uv run scripts/evaluate_all.py
+uv run scripts/evaluate_all.py --results-dir results --num-games 200
 ```
 
 Parcourt chaque expérience dans `results/`, charge chaque checkpoint sauvegardé, réévalue avec la policy gelée, et écrit `metrics_reeval.csv`.
@@ -304,19 +304,19 @@ La section `sweep:` utilise des clés en notation pointée. Chaque clé correspo
 Prévisualiser ce qui sera lancé (pas d'entraînement) :
 
 ```bash
-uv run python scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml --dry-run
+uv run scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml --dry-run
 ```
 
 Lancer le sweep complet :
 
 ```bash
-uv run python scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml
+uv run scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml
 ```
 
 Remplacer la graine :
 
 ```bash
-uv run python scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml --seed 99
+uv run scripts/train_sweep.py configs/dqn/grid_world_sweep.yaml --seed 99
 ```
 
 En interne, chaque combinaison est une config concrète passée à la même fonction `train_single()` utilisée par `scripts/train.py`. Les résultats atterrissent dans des dossiers séparés (le nom du dossier encode tous les paramètres). Le snapshot `config.yaml` dans chaque dossier de résultats est la version concrète expansée — pas le fichier sweep.

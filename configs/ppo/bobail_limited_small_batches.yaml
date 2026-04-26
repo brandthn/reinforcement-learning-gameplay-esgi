@@ -1,0 +1,33 @@
+# configs/ppo/bobail.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# PPO A2C style — Bobail (adversarial)
+#
+# Bobail est l'env le plus complexe : state_size=75, action_size=625.
+# On utilise un réseau plus large et plus d'épisodes d'entraînement.
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+env: bobail
+agent: ppo
+opponent: random           # adversarial → SelfPlayTrainer
+ 
+agent_params:
+  lr: 1.0e-3               # j'ai augmenté un peu le lr pour faire apprendre la policy un peu de plus
+  gamma: 0.93              # j'ai diminué un peu gamma pour essayer de le rendre un peu plus greedy, maintenant il perd beaucoup de temps
+  gae_lambda: 0.95         # λ GAE : compromis biais/variance
+  clip_epsilon: 0.2        # clipping PPO standard
+  entropy_coef: 0.01       # encourage l'exploration initiale
+  value_coef: 0.7          # je rende la loss du critic un peu plus importante pour stimuler le critic à apprendre plus rapidement
+  hidden_layers: [32, 16]  # j'essaye de limiter beaucoup la taille du réseau pour éviter l'overfitting
+  n_epochs: 4              # je laisse les epochs standard
+  batch_size: 16           # je limite la taille des batch pour augmenter l'importance d'avoir raison pas juste en moyenne, mais souvent
+  max_grad_norm: 0.5
+ 
+training:
+  num_episodes: 10000
+  max_steps_per_episode: 250   # je limite la taille de l'episode, je vais pousser le réseau à apprendre une stratégie rapide
+ 
+eval:
+  checkpoints: [1000, 5000, 10000]
+  num_games: 1000
+ 
+seeds: [7, 14]
