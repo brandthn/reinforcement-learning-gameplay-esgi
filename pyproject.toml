@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Deep Reinforcement Learning — 16 algorithms across 4 environments"
 requires-python = ">=3.11"
 dependencies = [
-    "torch==2.2.2",
-    "numpy<2",
+    "torch>=2.3",
+    "numpy",
     "pygame",
     "pyyaml",
 ]

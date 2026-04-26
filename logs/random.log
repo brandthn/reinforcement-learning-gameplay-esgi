@@ -1,0 +1,30 @@
+Training random on bobail (seed=42)
+  -> results/bobail/random/default_seed42
+  [     100 eps] reward=-0.080+/-0.997  steps=20.9  action_time=0.000ms
+  [     500 eps] reward=0.200+/-0.980  steps=19.0  action_time=0.000ms
+  [    1000 eps] reward=0.000+/-1.000  steps=17.6  action_time=0.000ms
+Training random on grid_world (seed=42)
+  -> results/grid_world/random/default_seed42
+  [     100 eps] reward=-0.120+/-0.993  steps=36.0  action_time=0.000ms
+  [     500 eps] reward=-0.360+/-0.933  steps=38.0  action_time=0.000ms
+  [    1000 eps] reward=-0.240+/-0.971  steps=36.3  action_time=0.000ms
+Training random on line_world (seed=42)
+  -> results/line_world/random/default_seed42
+  [     100 eps] reward=0.200+/-0.980  steps=4.0  action_time=0.000ms
+  [     500 eps] reward=0.240+/-0.971  steps=3.8  action_time=0.000ms
+  [    1000 eps] reward=-0.080+/-0.997  steps=4.3  action_time=0.000ms
+Training random on tictactoe (seed=42)
+  -> results/tictactoe/random/default_seed42
+  [     100 eps] reward=0.420+/-0.802  steps=7.8  action_time=0.000ms
+  [     500 eps] reward=0.520+/-0.830  steps=7.8  action_time=0.000ms
+  [    1000 eps] reward=0.340+/-0.863  steps=7.7  action_time=0.000ms
+Found 4 config(s)
+
+=== configs/random/bobail.yaml (train) ===
+
+=== configs/random/grid_world.yaml (train) ===
+
+=== configs/random/line_world.yaml (train) ===
+
+=== configs/random/tictactoe.yaml (train) ===
+

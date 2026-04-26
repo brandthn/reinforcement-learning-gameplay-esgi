@@ -1,0 +1,30 @@
+Training ddqn_per on bobail (seed=42)
+  -> results/bobail/ddqn_per/batch_size64_buffer_capacity50000_epsilon_decay_steps100000_epsilon_end0.05_epsilon_start1.0_gamma0.99_hidden_layers[256, 128]_learning_starts5000_lr0.0003_per_alpha0.6_per_beta_end1.0_per_beta_start0.4_per_beta_steps80000_target_update_freq500_seed42
+  [    1000 eps] reward=-0.960+/-0.280  steps=27.7  action_time=0.034ms
+  [   10000 eps] reward=-0.880+/-0.475  steps=228.0  action_time=0.034ms
+  [   50000 eps] reward=-0.840+/-0.543  steps=185.3  action_time=0.033ms
+Training ddqn_per on grid_world (seed=42)
+  -> results/grid_world/ddqn_per/batch_size64_buffer_capacity10000_epsilon_decay_steps20000_epsilon_end0.01_epsilon_start1.0_gamma0.99_hidden_layers[64, 64]_learning_starts1000_lr0.001_per_alpha0.6_per_beta_end1.0_per_beta_start0.4_per_beta_steps80000_target_update_freq200_seed42
+  [    1000 eps] reward=0.000+/-0.000  steps=10000.0  action_time=0.023ms
+  [   10000 eps] reward=0.000+/-0.000  steps=10000.0  action_time=0.023ms
+  [   50000 eps] reward=0.000+/-0.000  steps=10000.0  action_time=0.023ms
+Training ddqn_per on line_world (seed=42)
+  -> results/line_world/ddqn_per/batch_size64_buffer_capacity10000_epsilon_decay_steps10000_epsilon_end0.01_epsilon_start1.0_gamma0.99_hidden_layers[64, 64]_learning_starts500_lr0.001_per_alpha0.6_per_beta_end1.0_per_beta_start0.4_per_beta_steps50000_target_update_freq100_seed42
+  [    1000 eps] reward=1.000+/-0.000  steps=2.0  action_time=0.024ms
+  [   10000 eps] reward=1.000+/-0.000  steps=2.0  action_time=0.023ms
+  [   50000 eps] reward=1.000+/-0.000  steps=2.0  action_time=0.023ms
+Training ddqn_per on tictactoe (seed=42)
+  -> results/tictactoe/ddqn_per/batch_size64_buffer_capacity50000_epsilon_decay_steps50000_epsilon_end0.05_epsilon_start1.0_gamma0.99_hidden_layers[128, 128]_learning_starts2000_lr0.0005_per_alpha0.6_per_beta_end1.0_per_beta_start0.4_per_beta_steps80000_target_update_freq200_seed42
+  [    1000 eps] reward=0.710+/-0.588  steps=7.2  action_time=0.029ms
+  [   10000 eps] reward=0.360+/-0.794  steps=8.6  action_time=0.029ms
+  [   50000 eps] reward=0.460+/-0.699  steps=8.7  action_time=0.028ms
+Found 4 config(s)
+
+=== configs/ddqn_per/bobail.yaml (train) ===
+
+=== configs/ddqn_per/grid_world.yaml (train) ===
+
+=== configs/ddqn_per/line_world.yaml (train) ===
+
+=== configs/ddqn_per/tictactoe.yaml (train) ===
+

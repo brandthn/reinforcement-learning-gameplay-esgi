@@ -1,0 +1,30 @@
+Training tabular_q on bobail (seed=42)
+  -> results/bobail/tabular_q/epsilon_decay_steps30000_epsilon_end0.05_epsilon_start1.0_gamma0.99_lr0.1_seed42
+  [    1000 eps] reward=0.600+/-0.800  steps=12.3  action_time=0.004ms
+  [    5000 eps] reward=0.680+/-0.733  steps=13.2  action_time=0.004ms
+  [   10000 eps] reward=0.600+/-0.800  steps=13.3  action_time=0.004ms
+Training tabular_q on grid_world (seed=42)
+  -> results/grid_world/tabular_q/epsilon_decay_steps20000_epsilon_end0.01_epsilon_start1.0_gamma0.99_lr0.1_seed42
+  [    1000 eps] reward=1.000+/-0.000  steps=8.0  action_time=0.001ms
+  [   10000 eps] reward=1.000+/-0.000  steps=8.0  action_time=0.001ms
+  [   50000 eps] reward=1.000+/-0.000  steps=8.0  action_time=0.001ms
+Training tabular_q on line_world (seed=42)
+  -> results/line_world/tabular_q/epsilon_decay_steps5000_epsilon_end0.01_epsilon_start1.0_gamma0.99_lr0.1_seed42
+  [    1000 eps] reward=1.000+/-0.000  steps=2.0  action_time=0.001ms
+  [   10000 eps] reward=1.000+/-0.000  steps=2.0  action_time=0.001ms
+  [   50000 eps] reward=1.000+/-0.000  steps=2.0  action_time=0.001ms
+Training tabular_q on tictactoe (seed=42)
+  -> results/tictactoe/tabular_q/epsilon_decay_steps50000_epsilon_end0.05_epsilon_start1.0_gamma0.99_lr0.1_seed42
+  [    1000 eps] reward=0.700+/-0.640  steps=6.9  action_time=0.001ms
+  [   10000 eps] reward=0.990+/-0.099  steps=5.2  action_time=0.002ms
+  [   50000 eps] reward=0.990+/-0.099  steps=5.5  action_time=0.002ms
+Found 4 config(s)
+
+=== configs/tabular_q/bobail.yaml (train) ===
+
+=== configs/tabular_q/grid_world.yaml (train) ===
+
+=== configs/tabular_q/line_world.yaml (train) ===
+
+=== configs/tabular_q/tictactoe.yaml (train) ===
+
