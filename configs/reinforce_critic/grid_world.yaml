@@ -1,0 +1,18 @@
+env: grid_world
+agent: reinforce_critic
+
+agent_params:
+  lr: 0.001
+  critic_lr: 0.001
+  gamma: 0.99
+  hidden_layers: [64, 64]
+
+training:
+  num_episodes: 50000
+  max_steps_per_episode: 200
+
+eval:
+  checkpoints: [500, 1000, 2000, 3000, 4000, 5000]
+  num_games: 100
+
+seeds: [42, 123]
