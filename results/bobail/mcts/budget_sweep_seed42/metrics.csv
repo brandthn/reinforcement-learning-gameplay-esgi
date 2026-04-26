@@ -1,0 +1,5 @@
+budget,mean_reward,std_reward,mean_steps,std_steps,mean_action_time_ms,win_rate,draw_rate,loss_rate,termination_rate,truncation_rate,num_games
+10,0.4800,,12.80,,2.836,0.740,0.000,0.260,1.000,0.000,50
+50,0.9200,,9.24,,13.613,0.960,0.000,0.040,1.000,0.000,50
+100,0.9200,,11.24,,26.808,0.960,0.000,0.040,1.000,0.000,50
+200,0.9600,,10.16,,52.288,0.980,0.000,0.020,1.000,0.000,50

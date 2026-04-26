@@ -1,0 +1,16 @@
+env: bobail
+agent: random_rollout
+opponent: random
+agent_params:
+  n_rollouts_per_action: 50
+  max_rollout_depth: 200
+  gamma: 1.0
+budgets:
+- 10
+- 50
+- 100
+- 200
+eval:
+  num_games: 50
+seeds:
+- 42

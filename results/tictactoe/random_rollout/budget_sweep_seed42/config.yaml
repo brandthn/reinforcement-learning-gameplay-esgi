@@ -1,0 +1,19 @@
+agent: random_rollout
+agent_params:
+  gamma: 1.0
+  max_rollout_depth: 30
+  n_rollouts_per_action: 100
+budgets:
+- 10
+- 50
+- 100
+- 200
+- 500
+- 1000
+env: tictactoe
+eval:
+  num_games: 100
+opponent: random
+seed: 42
+seeds:
+- 42

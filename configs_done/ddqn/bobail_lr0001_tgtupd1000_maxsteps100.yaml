@@ -1,0 +1,20 @@
+env: bobail
+agent: ddqn
+opponent: random
+agent_params:
+  lr: 0.0001
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay_steps: 80000
+  hidden_layers: [256, 128]
+  batch_size: 64
+  buffer_capacity: 50000
+  target_update_freq: 1000
+training:
+  num_episodes: 100000
+  max_steps_per_episode: 100
+eval:
+  checkpoints: [1000, 10000, 50000, 100000]
+  num_games: 100
+seeds: [42, 123]
