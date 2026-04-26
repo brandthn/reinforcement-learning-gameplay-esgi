@@ -265,7 +265,7 @@ Agent (ABC)               ← agents/base.py
 def get_agent(name: str, env, params: dict = None):
     params = params or {}
     return AGENT_REGISTRY[name](
-        state_size=env.state_space_size(),    # ← appelle BobailEnv → 75
+        state_size=env.state_space_size(),    # ← appelle BobailEnv → 80
         action_size=env.action_space_size(),  # ← appelle BobailEnv → 625
         **params,
     )
@@ -275,11 +275,11 @@ def get_agent(name: str, env, params: dict = None):
 ```
 get_agent("random", env)
     │
-    ├── env.state_space_size()      → BobailEnv.state_space_size() → 75
+    ├── env.state_space_size()      → BobailEnv.state_space_size() → 80
     ├── env.action_space_size()     → BobailEnv.action_space_size() → 625
     │
-    └── AGENT_REGISTRY["random"](state_size=75, action_size=625)
-        └── RandomAgent.__init__(state_size=75, action_size=625)
+    └── AGENT_REGISTRY["random"](state_size=80, action_size=625)
+        └── RandomAgent.__init__(state_size=80, action_size=625)
             └── pass  (ignore tout)
 ```
 
@@ -533,11 +533,11 @@ for env_name in ENV_REGISTRY:             # itère sur tous les envs
 │         │                                                                │
 │  3. agents/__init__.py                                                  │
 │         │  get_agent("random", env)                                     │
-│         │  appelle env.state_space_size() → 75                          │
+│         │  appelle env.state_space_size() → 80                          │
 │         │  appelle env.action_space_size() → 625                        │
 │         ▼                                                                │
 │     agents/random_agent.py                                              │
-│         │  RandomAgent(75, 625) hérite de                               │
+│         │  RandomAgent(80, 625) hérite de                               │
 │         ▼                                                                │
 │     agents/base.py                                                      │
 │         │  class Agent(ABC)                                             │

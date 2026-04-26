@@ -1,0 +1,4 @@
+checkpoint,mean_reward,std_reward,mean_steps,std_steps,termination_rate,truncation_rate,mean_action_time_ms,std_action_time_ms
+1000,1.0000,0.0000,2.00,0.00,1.000,0.000,0.023,0.002
+10000,1.0000,0.0000,2.00,0.00,1.000,0.000,0.023,0.001
+50000,1.0000,0.0000,2.00,0.00,1.000,0.000,0.023,0.001

@@ -30,13 +30,13 @@ graph LR
 | **Type** | Navigation 1D | Navigation 2D | Jeu de plateau | Jeu de plateau |
 | **Joueurs** | 1 (single-player) | 1 (single-player) | 2 (adversarial) | 2 (adversarial) |
 | **Taille de grille** | 5 cellules | 5x5 = 25 cellules | 3x3 = 9 cellules | 5x5 = 25 cellules |
-| **Taille du vecteur d'etat** | 5 | 25 | 27 (3 x 9) | 75 (3 x 25) |
+| **Taille du vecteur d'etat** | 5 | 25 | 27 (3 x 9) | 80 (3 x 25 + 5 features) |
 | **Taille de l'espace d'actions** | 2 | 4 | 9 | 625 |
 | **Actions legales typiques** | 1-2 | 2-4 | 5-9 | ~20-60 |
 | **Reward victoire** | +1.0 | +1.0 | +1.0 | +1.0 |
 | **Reward defaite** | N/A | N/A | -1.0 (implicite) | -1.0 (implicite) |
 | **Reward autre** | 0.0 | 0.0 | 0.0 | 0.0 |
-| **Encodage etat** | One-hot | One-hot | 3 canaux binaires | 3 canaux binaires |
+| **Encodage etat** | One-hot | One-hot | 3 canaux binaires | 3 canaux binaires + 5 features strategiques (phase, dist_my, dist_opp, mobilite, first_turn) |
 | **Perspective** | N/A | N/A | Joueur courant | Joueur courant |
 | **Action masking** | Oui (bords) | Oui (bords) | Oui (cases occupees) | Oui (mouvements legaux) |
 

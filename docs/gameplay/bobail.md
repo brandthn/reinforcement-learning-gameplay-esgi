@@ -170,26 +170,32 @@ Deplacer la piece de (4, 0) vers (1, 0) :
   action    = 20 * 25 + 5 = 505
 ```
 
-### Encodage de l'etat : 75 floats (3 canaux de 25)
+### Encodage de l'etat : 80 floats (3 canaux de 25 + 5 features strategiques)
 
 ```mermaid
 graph LR
-    subgraph "Vecteur d'etat (75 dimensions)"
+    subgraph "Vecteur d'etat (80 dimensions)"
         A["Indices 0-24<br/>Mes pieces<br/>(joueur courant)"]
         B["Indices 25-49<br/>Pieces adversaire"]
         C["Indices 50-74<br/>Position du bobail"]
+        D["Indices 75-79<br/>phase, dist_my,<br/>dist_opp, mobilite,<br/>first_turn"]
     end
 
     style A fill:#2196F3,color:#fff
     style B fill:#F44336,color:#fff
     style C fill:#FFD700,color:#000
+    style D fill:#9C27B0,color:#fff
 ```
 
-Chaque canal est un vecteur de 25 floats (un par cellule), avec :
-- `1.0` si la condition est vraie pour cette cellule
-- `0.0` sinon
+Chaque canal spatial est un vecteur de 25 floats binaires (`1.0` si la condition est vraie pour cette cellule, `0.0` sinon).
 
-**Propriete cle : perspective du joueur courant**. Quand le joueur change, les canaux "mes pieces" et "pieces adversaire" sont permutes.
+Les **5 features strategiques** (indices 75-79) completent avec des signaux globaux :
+- `phase` (0 = bobail a venir, 1 = piece a venir)
+- `dist_my` / `dist_opp` (distance normalisee du bobail vers la rangee maison de chaque camp)
+- `mobilite` (nb de coups legaux / 40, **seule feature continue**)
+- `first_turn` (flag du tout premier coup du J0)
+
+**Propriete cle : perspective du joueur courant**. Quand le joueur change, les canaux "mes pieces" / "pieces adversaire" et les features `dist_my` / `dist_opp` sont permutes automatiquement.
 
 ### Exemple d'etat initial (point de vue du Joueur 0)
 

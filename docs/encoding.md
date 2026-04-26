@@ -133,7 +133,9 @@ L'encodage multi-canal sépare clairement les pièces alliées, ennemies, et les
 
 ### État
 
-3 canaux de 25 valeurs chacun (grille 5×5), concaténés en un vecteur de 75 float32.
+Vecteur de **80 float32** : 3 canaux spatiaux de 25 (one-hot sur la grille 5×5) **+ 5 features stratégiques**.
+
+#### Canaux spatiaux (75 premières valeurs)
 
 
 | Canal | Index | Signification                                                  |
@@ -155,9 +157,23 @@ Index :  0 |  1 |  2 |  3 |  4
 
 Position (ligne r, colonne c) → index `r * 5 + c`
 
-**Taille du vecteur d'état :** 75
+#### Features stratégiques (5 dernières valeurs)
 
-**Perspective :** Joueur courant (D-002). Les canaux 0 et 1 permutent automatiquement quand le tour change.
+
+| Index | Nom            | Type / plage                              | Définition                                                              |
+| ----- | -------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
+| 75    | `phase`        | {0.0, 1.0}                                | 0 = phase bobail à venir, 1 = phase pièce à venir                       |
+| 76    | `dist_my`      | {0.0, 0.25, 0.5, 0.75, 1.0}               | `|ligne_bobail − ma_rangée_maison| / 4`                                 |
+| 77    | `dist_opp`     | {0.0, 0.25, 0.5, 0.75, 1.0}               | `|ligne_bobail − rangée_maison_adverse| / 4`                            |
+| 78    | `mobilite`     | **continue** dans `[0, ~1.0+]`            | `len(available_actions()) / 40.0`                                       |
+| 79    | `first_turn`   | {0.0, 1.0}                                | 1 pendant le tout premier tour du joueur 0 (tour sans phase bobail)     |
+
+
+**Rangée maison :** J0 = ligne 4 (bas), J1 = ligne 0 (haut). Chaque joueur gagne en amenant le bobail sur **sa propre** rangée maison. `dist_my` est donc la distance du bobail vers l'objectif du joueur courant (plus petit = plus proche de la victoire).
+
+**Taille totale du vecteur d'état :** **80** (`state_space_size() = 3 * 25 + 5`)
+
+**Perspective :** Joueur courant (D-002). Les canaux 0 et 1, ainsi que `dist_my` / `dist_opp`, permutent automatiquement quand le tour change.
 
 ### Actions
 
@@ -184,9 +200,19 @@ Encodage `(case_départ, case_arrivée)` : `from_cell * 25 + to_cell`
 
 ### Justification des choix
 
-**Encodage d'état :** Même approche multi-canal que TicTacToe, étendue à une grille 5×5 avec un pion neutre. Le bobail a son propre canal car c'est un élément distinct du jeu (ni allié ni ennemi). 75 valeurs restent compactes pour un réseau de neurones.
+**Canaux spatiaux :** Même approche multi-canal que TicTacToe, étendue à une grille 5×5 avec un pion neutre. Le bobail a son propre canal car c'est un élément distinct du jeu (ni allié ni ennemi).
+
+**Features stratégiques :** Les 5 features additionnelles encodent des informations que le réseau pourrait théoriquement réapprendre à partir des 75 canaux spatiaux, mais les fournir explicitement :
+- `phase` / `first_turn` : désambiguïsent le type de coup attendu — la même configuration de plateau ne signifie pas la même chose en phase bobail vs phase pièce.
+- `dist_my` / `dist_opp` : donnent au réseau un signal de progression vers l'objectif sans qu'il ait à "compter" à partir du canal bobail.
+- `mobilite` : proxy direct de la condition de victoire "bloquer le bobail" (mobilité nulle côté adverse = défaite imminente de l'adversaire).
 
 **Encodage d'actions :** Le mapping `from * 25 + to` est uniforme pour les deux phases (bobail et pièce). Ça évite d'avoir deux espaces d'actions distincts. L'espace de 625 est clairsemé (la plupart des combinaisons sont illégales) mais le masquage via `available_actions()` garantit que seules les actions légales sont choisies.
+
+### Points de vigilance
+
+- `mobilite` est la seule feature **continue** du vecteur d'état du projet. Les agents tabulaires (TabularQ) restent utilisables techniquement (`tuple(state.tolist())` reste déterministe), mais perdent la propriété "états naturellement discrets" ; combinée à l'explosion combinatoire des configurations, cette continuité est un argument de plus pour préférer un Q approximé (DQN & co) sur Bobail.
+- `mobilite` peut légèrement dépasser `1.0` si `len(available_actions()) > 40` (rare mais non impossible en phase pièce). Le réseau voit alors une valeur > 1, ce qui reste acceptable mais rompt la normalisation stricte `[0, 1]`.
 
 ---
 

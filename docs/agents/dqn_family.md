@@ -257,11 +257,13 @@ graph TD
 build_mlp(input_dim, output_dim, hidden_layers, activation="relu")
 ```
 
-Exemple : `build_mlp(75, 625, [128, 128])` pour Bobail :
+Exemple : `build_mlp(80, 625, [128, 128])` pour Bobail :
 
 ```
-Input(75) → Linear(75→128) → ReLU → Linear(128→128) → ReLU → Linear(128→625)
+Input(80) → Linear(80→128) → ReLU → Linear(128→128) → ReLU → Linear(128→625)
 ```
+
+> Bobail a un etat de 80 dims : 75 canaux spatiaux binaires + 5 features strategiques (`phase`, `dist_my`, `dist_opp`, `mobilite`, `first_turn`). Voir `docs/encoding.md` pour le detail.
 
 ### Replay Buffer (`training/replay_buffer.py`)
 

@@ -21,8 +21,8 @@ graph TD
 |-----------|-------------|
 | **Type** | `np.ndarray`, dtype `float32` |
 | **Forme** | Toujours 1D (vecteur plat) |
-| **Valeurs** | Binaires (0.0 ou 1.0) pour tous les environnements |
-| **Encodage** | One-hot (single-player) ou multi-canal binaire (adversarial) |
+| **Valeurs** | Binaires {0.0, 1.0} pour LineWorld, GridWorld, TicTacToe et la partie spatiale de Bobail. Bobail ajoute 5 features strategiques (1 continue + 4 discretes) |
+| **Encodage** | One-hot (single-player) ou multi-canal binaire (adversarial) + features strategiques (Bobail seulement) |
 
 ---
 
@@ -166,28 +166,43 @@ Vecteur complet : [0,0,1,0,0,0,0,0,0, 1,0,0,0,1,0,0,0,0, 0,1,0,1,0,1,1,1,1]
 
 ---
 
-## 4. Bobail : 3 Canaux x 25 = 75 dims
+## 4. Bobail : 3 Canaux x 25 + 5 features = 80 dims
 
 ### Structure
 
 ```mermaid
 graph LR
-    subgraph "Vecteur d'etat : 75 dimensions"
+    subgraph "Vecteur d'etat : 80 dimensions"
         A["Indices 0-24<br/>MES pieces<br/>(joueur courant)"]
         B["Indices 25-49<br/>Pieces ADVERSAIRE"]
         C["Indices 50-74<br/>Position BOBAIL"]
+        D["Indices 75-79<br/>Features strategiques<br/>(phase, dist_my, dist_opp,<br/>mobilite, first_turn)"]
     end
 
     style A fill:#2196F3,color:#fff
     style B fill:#F44336,color:#fff
     style C fill:#FFD700,color:#000
+    style D fill:#9C27B0,color:#fff
 ```
 
-| Canal | Indices | Contenu | Code |
+| Bloc | Indices | Contenu | Code |
 |-------|---------|---------|------|
 | **Mes pieces** | 0-24 | `1.0` pour chaque cellule contenant une de mes pieces | `pieces[current]` |
 | **Pieces adversaire** | 25-49 | `1.0` pour chaque cellule contenant une piece adverse | `pieces[1-current]` |
 | **Bobail** | 50-74 | `1.0` pour la cellule contenant le bobail | `bobail_pos` |
+| **Features** | 75-79 | `phase`, `dist_my`, `dist_opp`, `mobilite`, `first_turn` | cf. section ci-dessous |
+
+### Les 5 features strategiques (indices 75-79)
+
+| Index | Nom | Plage | Definition |
+|:-----:|:----|:------|:-----------|
+| 75 | `phase` | {0.0, 1.0} | 0 = coup bobail a venir, 1 = coup piece a venir |
+| 76 | `dist_my` | {0.0, 0.25, 0.5, 0.75, 1.0} | `|ligne_bobail - ma_rangee_maison| / 4` |
+| 77 | `dist_opp` | {0.0, 0.25, 0.5, 0.75, 1.0} | `|ligne_bobail - rangee_adverse| / 4` |
+| 78 | `mobilite` | **continue** dans `[0, ~1.0+]` | `len(available_actions()) / 40` |
+| 79 | `first_turn` | {0.0, 1.0} | 1 pendant le tout premier tour de J0 |
+
+> `mobilite` est la seule valeur **continue** de tous les vecteurs d'etat du projet.
 
 ### Mapping cellule → position dans le canal
 
@@ -212,10 +227,14 @@ Plateau :                   Canal 0 (mes pieces J0) :    Canal 1 (adversaire J1)
   . . . . .                   0 0 0 0 0                    0 0 0 0 0                   0 0 0 0 0
   0 0 0 0 0                   1 1 1 1 1                    0 0 0 0 0                   0 0 0 0 0
 
-Vecteur complet (75 floats) :
+Vecteur spatial (75 premieres valeurs) :
 [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 1,1,1,1,1,    ← mes pieces
  1,1,1,1,1, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,    ← adversaire
  0,0,0,0,0, 0,0,0,0,0, 0,0,1,0,0, 0,0,0,0,0, 0,0,0,0,0]    ← bobail
+
+Features strategiques (5 dernieres valeurs) :
+[ 1.0 ,   0.5 ,    0.5 ,   mobilite,  1.0  ]
+  phase   dist_my  dist_opp           first_turn
 ```
 
 ### Propriete CRITIQUE : Perspective du joueur courant
@@ -242,7 +261,7 @@ Cela permet a un meme reseau de neurones d'apprendre a jouer independamment du "
 | **LineWorld** | 5 | One-hot position | Exactement 1 valeur a 1.0 |
 | **GridWorld** | 25 | One-hot position | Exactement 1 valeur a 1.0 |
 | **TicTacToe** | 27 | 3 canaux binaires (moi, adv, vide) | Somme de chaque position sur les 3 canaux = 1.0 |
-| **Bobail** | 75 | 3 canaux binaires (moi, adv, bobail) | Canal 0 : exactement 5 valeurs a 1.0, Canal 1 : 5, Canal 2 : 1 |
+| **Bobail** | 80 | 3 canaux binaires (moi, adv, bobail) + 5 features strategiques | Canaux 0..2 idem TicTacToe etendu. Features 75-79 = phase, dist_my, dist_opp, mobilite (continue), first_turn |
 
 ### Pourquoi cet encoding ?
 

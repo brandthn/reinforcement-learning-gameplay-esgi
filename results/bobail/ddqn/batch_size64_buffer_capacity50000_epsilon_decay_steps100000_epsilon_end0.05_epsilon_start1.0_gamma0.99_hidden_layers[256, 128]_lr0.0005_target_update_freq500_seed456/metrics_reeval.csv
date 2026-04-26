@@ -1,0 +1,4 @@
+checkpoint,mean_reward_combined,mean_steps_combined,win_rate_combined,draw_rate_combined,loss_rate_combined,termination_rate_combined,truncation_rate_combined,mean_reward_p0,win_rate_p0,termination_rate_p0,mean_reward_p1,win_rate_p1,termination_rate_p1,mean_action_time_ms
+1000,-0.9400,52.50,0.030,0.000,0.970,1.000,0.000,-0.9200,0.040,1.000,-0.9600,0.020,1.000,0.033
+10000,-0.8400,161.45,0.080,0.000,0.920,1.000,0.000,-0.8800,0.060,1.000,-0.8000,0.100,1.000,0.032
+100000,-0.6600,162.86,0.170,0.000,0.830,1.000,0.000,-0.8400,0.080,1.000,-0.4800,0.260,1.000,0.032

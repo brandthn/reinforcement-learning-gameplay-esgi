@@ -152,7 +152,7 @@
 
 **Décision :** MLP (feedforward) construit via `training/networks.py::build_mlp()`. La liste des couches cachées est un paramètre de config (`hidden_layers`). Activation ReLU par défaut. Optimiseur Adam. Perte MSE.
 
-**Pourquoi :** Un MLP est suffisant pour des espaces d'états en vecteur plat (one-hot, encodages binaires). Nos environnements ont des espaces d'états de faible dimension (5 à 75). La configurabilité via `hidden_layers` permet d'ajuster la capacité par environnement (ex: `[64, 64]` pour LineWorld, `[256, 128]` pour Bobail).
+**Pourquoi :** Un MLP est suffisant pour des espaces d'états en vecteur plat (one-hot, encodages binaires, avec pour Bobail quelques features stratégiques additionnelles). Nos environnements ont des espaces d'états de faible dimension (5 à 80). La configurabilité via `hidden_layers` permet d'ajuster la capacité par environnement (ex: `[64, 64]` pour LineWorld, `[256, 128]` pour Bobail).
 
 ---
 
