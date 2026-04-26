@@ -1,0 +1,3 @@
+run_dir: results\line_world\ppo\batch_size16_clip_epsilon0.2_entropy_coef0.02_gae_lambda0.95_gamma0.99_hidden_layers[32, 32]_lr0.0003_max_grad_norm0.5_n_epochs4_value_coef0.5_seed123
+checkpoint: 5000
+model_file: model_5000.pt

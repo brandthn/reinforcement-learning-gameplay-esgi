@@ -1,0 +1,29 @@
+agent: ppo
+agent_params:
+  batch_size: 64
+  clip_epsilon: 0.2
+  entropy_coef: 0.01
+  gae_lambda: 0.95
+  gamma: 0.93
+  hidden_layers:
+  - 32
+  - 16
+  lr: 0.001
+  max_grad_norm: 0.5
+  n_epochs: 4
+  value_coef: 0.7
+env: bobail
+eval:
+  checkpoints:
+  - 1000
+  - 5000
+  - 10000
+  num_games: 1000
+opponent: random
+seed: 7
+seeds:
+- 7
+- 14
+training:
+  max_steps_per_episode: 250
+  num_episodes: 10000
