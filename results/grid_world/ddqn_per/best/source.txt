@@ -1,0 +1,3 @@
+run_dir: results/grid_world/ddqn_per/batch_size64_buffer_capacity10000_epsilon_decay_steps20000_epsilon_end0.01_epsilon_start1.0_gamma0.99_hidden_layers[64, 64]_learning_starts1000_lr0.0003_per_alpha0.6_per_beta_end1.0_per_beta_start0.4_per_beta_steps80000_target_update_freq200_seed42
+checkpoint: 100000
+model_file: model_100000.pt

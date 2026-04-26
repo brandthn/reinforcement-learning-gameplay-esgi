@@ -34,7 +34,7 @@ def reset(self) -> np.ndarray:
     self._done = False
     self._turn_number = 0
     self._first_turn = True
-    return self.state_description()            # → float32[75]
+    return self.state_description()            # → float32[80]
 ```
 
 **Plateau après reset :**

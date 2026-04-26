@@ -57,7 +57,7 @@ en cours de partie — impossible.
 
 ```
 Réseau de neurones DQN :
-    Input: state[75] → Hidden layers → Output: Q[625]
+    Input: state[80] → Hidden layers → Output: Q[625]
                                                   │
                                          Q-value pour chaque
                                          action possible

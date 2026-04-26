@@ -24,6 +24,13 @@ from agents import get_agent
 # Petites valeurs pour que les tests soient rapides.
 AGENT_TEST_PARAMS = {
     "random": {},
+    "tabular_q": {
+        "lr": 0.1,
+        "gamma": 0.99,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay_steps": 100,
+    },
 }
 
 ALL_ENVS = ["line_world", "grid_world", "tictactoe", "bobail"]

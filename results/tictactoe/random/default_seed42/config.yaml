@@ -1,0 +1,15 @@
+agent: random
+env: tictactoe
+eval:
+  checkpoints:
+  - 100
+  - 500
+  - 1000
+  num_games: 50
+opponent: random
+seed: 42
+seeds:
+- 42
+training:
+  max_steps_per_episode: 20
+  num_episodes: 1000

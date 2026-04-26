@@ -1,0 +1,3 @@
+run_dir: results/tictactoe/dqn/batch_size64_buffer_capacity50000_epsilon_decay_steps50000_epsilon_end0.05_epsilon_start1.0_gamma0.99_hidden_layers[128, 128]_lr0.001_target_update_freq200_seed42
+checkpoint: 50000
+model_file: model_50000.pt

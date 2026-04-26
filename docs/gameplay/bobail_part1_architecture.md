@@ -116,13 +116,13 @@ def get_agent(name: str, env, params: dict = None):
     """Instancie un agent avec les dimensions de l'env."""
     params = params or {}
     return AGENT_REGISTRY[name](
-        state_size=env.state_space_size(),   # BobailEnv → 75
+        state_size=env.state_space_size(),   # BobailEnv → 80
         action_size=env.action_space_size(), # BobailEnv → 625
         **params,
     )
 ```
 
-**Appel** : `get_agent("random", env)` → `RandomAgent(state_size=75, action_size=625)`
+**Appel** : `get_agent("random", env)` → `RandomAgent(state_size=80, action_size=625)`
 
 ---
 
@@ -153,12 +153,12 @@ class Environment(ABC):
 ```python
 class BobailEnv(Environment):
     def __init__(self)                                                # pas de paramètre
-    def reset(self) -> np.ndarray                                     # → vecteur float32[75]
+    def reset(self) -> np.ndarray                                     # → vecteur float32[80]
     def step(self, action: int) -> tuple[np.ndarray, float, bool]     # action ∈ [0, 624]
     def available_actions(self) -> list[int]                           # → sous-ensemble de [0, 624]
-    def state_description(self) -> np.ndarray                         # → float32[75]
+    def state_description(self) -> np.ndarray                         # → float32[80]
     def action_space_size(self) -> int                                # → 625
-    def state_space_size(self) -> int                                 # → 75
+    def state_space_size(self) -> int                                 # → 80 (3 × 25 canaux spatiaux + 5 features)
     def is_adversarial(self) -> bool                                  # → True
     def current_player(self) -> int                                   # → 0 ou 1
     def render_text(self) -> str                                      # → plateau 5x5 en texte
@@ -233,8 +233,8 @@ Script d'entraînement
 │
 ├─ 1. config = yaml.load("configs/random/bobail.yaml")
 ├─ 2. env = get_env("bobail")                        → BobailEnv.__init__()
-├─ 3. agent = get_agent("random", env)                → RandomAgent(state_size=75, action_size=625)
-├─ 4. opponent = get_agent("random", env)             → RandomAgent(state_size=75, action_size=625)
+├─ 3. agent = get_agent("random", env)                → RandomAgent(state_size=80, action_size=625)
+├─ 4. opponent = get_agent("random", env)             → RandomAgent(state_size=80, action_size=625)
 ├─ 5. trainer = SelfPlayTrainer(env, agent, opponent, config)
 │
 └─ 6. trainer.train(results_dir)
@@ -244,7 +244,7 @@ Script d'entraînement
         ├─ trainer._run_episode()
         │   │
         │   ├─ env.reset()                            → BobailEnv.reset()
-        │   │                                            → retourne state float32[75]
+        │   │                                            → retourne state float32[80]
         │   │
         │   └─ Boucle (max 500 steps) :
         │       │

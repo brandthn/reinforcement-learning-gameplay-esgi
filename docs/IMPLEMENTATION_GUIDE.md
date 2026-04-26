@@ -307,10 +307,11 @@ The environment tracks an internal `phase` variable. Each call to `step(action)`
 This is a required deliverable (see `docs/encoding.md`). The general approach:
 
 - 5×5 board → 25 cells
-- 3 channels: current player's pieces, opponent's pieces, bobail position
-- Total state vector: 75 float32 values
+- 3 spatial channels: current player's pieces, opponent's pieces, bobail position (75 binary values)
+- 5 strategic features: `phase`, `dist_my`, `dist_opp`, `mobilite` (continuous), `first_turn`
+- Total state vector: **80 float32 values**
 
-The exact encoding details (including whether additional information like phase or turn number is included) are to be finalized during implementation and documented in `docs/encoding.md`.
+See `docs/encoding.md` for the full breakdown of the 5 strategic features and their rationale.
 
 ### Action encoding
 

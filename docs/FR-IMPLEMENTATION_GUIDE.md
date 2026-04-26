@@ -305,10 +305,11 @@ L'environnement suit une variable `phase` interne. Chaque appel à `step(action)
 C'est un livrable requis (voir `docs/encoding.md`). Approche générale :
 
 - Plateau 5×5 → 25 cases
-- 3 canaux : pièces du joueur courant, pièces de l'adversaire, position du bobail
-- Vecteur d'état total : 75 valeurs float32
+- 3 canaux spatiaux : pièces du joueur courant, pièces de l'adversaire, position du bobail (75 valeurs binaires)
+- 5 features stratégiques : `phase`, `dist_my`, `dist_opp`, `mobilite` (continue), `first_turn`
+- Vecteur d'état total : **80 valeurs float32**
 
-Les détails exacts de l'encodage (y compris si des informations supplémentaires comme la phase ou le numéro de tour sont incluses) sont documentés dans `docs/encoding.md`.
+Voir `docs/encoding.md` pour le détail complet des 5 features stratégiques et leur justification.
 
 ### Encodage des actions
 
