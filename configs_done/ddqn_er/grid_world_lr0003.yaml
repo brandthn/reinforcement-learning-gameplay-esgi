@@ -1,0 +1,20 @@
+env: grid_world
+agent: ddqn_er
+agent_params:
+  lr: 0.0003
+  gamma: 0.99
+  epsilon_start: 1.0
+  epsilon_end: 0.01
+  epsilon_decay_steps: 20000
+  hidden_layers: [64, 64]
+  batch_size: 64
+  buffer_capacity: 10000
+  target_update_freq: 200
+  learning_starts: 1000
+training:
+  num_episodes: 100000
+  max_steps_per_episode: 200
+eval:
+  checkpoints: [1000, 10000, 50000, 100000]
+  num_games: 100
+seeds: [42, 123]

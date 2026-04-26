@@ -1,0 +1,19 @@
+agent: mcts
+agent_params:
+  c_uct: 1.41
+  gamma: 1.0
+  max_rollout_depth: 100
+  n_simulations: 50
+budgets:
+- 10
+- 50
+- 100
+- 200
+- 500
+- 1000
+env: line_world
+eval:
+  num_games: 100
+seed: 42
+seeds:
+- 42

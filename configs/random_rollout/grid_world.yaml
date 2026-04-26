@@ -1,0 +1,17 @@
+env: grid_world
+agent: random_rollout
+agent_params:
+  n_rollouts_per_action: 100
+  max_rollout_depth: 100
+  gamma: 1.0
+budgets:
+- 10
+- 50
+- 100
+- 200
+- 500
+- 1000
+eval:
+  num_games: 100
+seeds:
+- 42
