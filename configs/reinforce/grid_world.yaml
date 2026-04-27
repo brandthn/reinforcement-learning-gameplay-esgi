@@ -7,7 +7,7 @@ agent_params:
   hidden_layers: [64, 64]
 
 training:
-  num_episodes: 5000
+  num_episodes: 100000
   max_steps_per_episode: 200
 
 eval:
