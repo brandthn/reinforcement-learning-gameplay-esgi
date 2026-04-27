@@ -3,7 +3,7 @@ agent: tabular_q
 opponent: random
 agent_params:
   lr: 0.1
-  gamma: 0.99
+  gamma: 0.5 #j'essaye de le rendre hyper greedy
   epsilon_start: 1.0
   epsilon_end: 0.05
   epsilon_decay_steps: 100000
