@@ -5,6 +5,7 @@ from .value_based.dqn import DQNAgent
 from .value_based.ddqn import DDQNAgent
 from .value_based.ddqn_er import DDQNERAgent
 from .value_based.ddqn_per import DDQNPERAgent
+from .planning.expert_apprentice import ExpertApprenticeAgent
 
 AGENT_REGISTRY = {
     "random": RandomAgent,
@@ -14,6 +15,7 @@ AGENT_REGISTRY = {
     "ddqn": DDQNAgent,
     "ddqn_er": DDQNERAgent,
     "ddqn_per": DDQNPERAgent,
+    "expert_apprentice" : ExpertApprenticeAgent
 }
 
 

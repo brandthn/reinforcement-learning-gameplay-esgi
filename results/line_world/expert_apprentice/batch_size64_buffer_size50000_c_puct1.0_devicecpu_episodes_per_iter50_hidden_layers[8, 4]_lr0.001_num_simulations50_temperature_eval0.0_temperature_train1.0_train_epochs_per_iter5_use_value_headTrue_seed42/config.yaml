@@ -1,0 +1,27 @@
+agent: expert_apprentice
+agent_params:
+  batch_size: 64
+  buffer_size: 50000
+  c_puct: 1.0
+  device: cpu
+  episodes_per_iter: 50
+  hidden_layers:
+  - 8
+  - 4
+  lr: 0.001
+  num_simulations: 50
+  temperature_eval: 0.0
+  temperature_train: 1.0
+  train_epochs_per_iter: 5
+  use_value_head: true
+env: line_world
+experiment_label: exit_baseline_line_world
+seed: 42
+training:
+  checkpoint_episodes:
+  - 10
+  - 100
+  - 1000
+  eval_episodes: 200
+  num_episodes: 1000
+  opponent: null

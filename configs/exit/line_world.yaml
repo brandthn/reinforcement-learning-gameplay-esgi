@@ -1,0 +1,43 @@
+# configs/expert_apprentice/line_world.yaml
+# Expérience de base — Expert Iteration (EXIT) sur LineWorld
+# Référence : Anthony et al., NeurIPS 2017
+
+env: line_world
+agent: expert_apprentice
+seed: 42
+experiment_label: "exit_baseline_line_world"
+
+training:
+  # LineWorld est mono-joueur → trainer.py (pas self_play.py)
+  # "épisodes" ici = parties générées par l'expert au total
+  # Le nombre d'itérations EXIT = num_episodes / agent_params.episodes_per_iter
+  num_episodes: 1000
+  checkpoint_episodes: [10, 100, 1000]
+  eval_episodes: 200          # parties jouées par l'Evaluator à chaque checkpoint
+  opponent: null              # mono-joueur, pas d'adversaire
+
+agent_params:
+  # --- Réseau apprenti ---
+  hidden_layers: [8, 4]     # MLP trunk partagé (policy head + value head)
+  use_value_head: true        # active la tête de valeur (recommandé paper §5.2)
+
+  # --- MCTS expert ---
+  num_simulations: 50         # simulations par coup (réduit car LineWorld est simple)
+  c_puct: 1.0                 # constante d'exploration PUCT
+
+  # --- Imitation learning ---
+  lr: 0.001                   # Adam
+  batch_size: 64
+  buffer_size: 50000          # dataset aggregation (style DAgger / online EXIT)
+  train_epochs_per_iter: 5    # passes sur le buffer après chaque génération
+
+  # --- Cycle EXIT ---
+  episodes_per_iter: 50       # parties expert générées avant chaque entraînement
+                              # → 100000 / 50 = 2000 itérations EXIT au total
+
+  # --- Températures ---
+  temperature_train: 1.0      # exploration pendant la génération de données
+  temperature_eval: 0.0       # greedy en inférence
+
+  # --- Matériel ---
+  device: cpu                 # LineWorld ne justifie pas le GPU
