@@ -18,7 +18,7 @@ class TabularQAgent(Agent):
     def __init__(self, state_size: int, action_size: int,
                  lr: float, gamma: float,
                  epsilon_start: float, epsilon_end: float,
-                 epsilon_decay_steps: int):
+                 epsilon_decay_steps: int, device: str = "cpu"):
         self._state_size = state_size
         self._action_size = action_size
         self._lr = lr
