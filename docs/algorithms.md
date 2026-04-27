@@ -155,9 +155,30 @@ graph TD
 
 ---
 
-## Expert Apprentice
+## Expert Apprentice (Expert Iteration, ExIt)
 
-*À compléter.*
+### 1. Idée centrale
+
+L’article *Thinking Fast and Slow with Deep Learning and Tree Search* (arXiv:1705.08439) sépare la **découverte** de bons coups (processus lent : recherche arborescente) de la **généralisation** (processus rapide : réseau de neurones). Dans notre implémentation, l’**expert** est un MCTS (UCT) déjà présent dans le projet ; l’**apprenti** est un MLP qui classe les actions et est entraîné à imiter les coups choisis par l’expert à la racine de l’arbre.
+
+### 2. Comment il s’entraîne
+
+À chaque décision en entraînement, l’expert MCTS joue le coup ; on enregistre l’état, le coup expert et la liste des actions légales. Le buffer est rempli de ces triplets. Après un warm-up (`learning_starts`), à chaque `observe()` on tire des mini-batchs et on minimise la log-vraisemblance du coup expert sous une softmax **masquée** (actions illégales à logits très bas). L’évaluateur et la GUI utilisent `training=False` : uniquement le réseau, sans MCTS.
+
+### 3. Apport vs MCTS seul
+
+Le MCTS pur est fort mais coûteux à chaque coup. L’apprenti, une fois entraîné, reproduit une partie du comportement avec un coût inférieur en inférence. Par rapport aux méthodes valeur (DQN), ici la cible n’est pas une bootstrap TD mais une **supervision** fournie par l’arbre.
+
+### 4. Limites et points de vigilance
+
+- Version simplifiée : pas de réseau dans la formule UCB (pas de PUCT « AlphaZero »), pas de distribution complète des visites comme cible molle.
+- Coût d’entraînement : chaque coup en mode train reste aussi cher qu’un appel MCTS ; prévoir des budgets `n_simulations` réalistes.
+- `learning_starts` doit rester inférieur à `buffer_capacity` pour ne pas évincer toutes les données avant le premier gradient.
+
+### 5. Fichier et hyperparamètres
+
+- **Code :** `agents/planning/expert_apprentice.py`
+- **Configs d’exemple :** `configs_done/expert_apprentice/*.yaml`
 
 ---
 

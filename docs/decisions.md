@@ -218,3 +218,17 @@ La source de vérité est toujours `results/` — chaque run contient son `confi
 - Lire depuis `configs/{agent}/{env}.yaml` — ne gère pas les sweeps, pas de correspondance garantie avec le modèle sauvegardé
 - Auto-sélection par métriques dans la GUI — logique opinionée ("best" = highest reward?), complexité dans le code GUI
 - Défauts hardcodés pour le mode inférence — fragile, chaque agent a des paramètres différents
+
+---
+
+### D-019 : Expert Apprentice (ExIt) — imitation MCTS racine + politique rapide (Avril 2026)
+
+**Contexte :** Le syllabus exige un agent « Expert Apprentice » aligné sur l’article arXiv:1705.08439 (Expert Iteration, arbre + réseau). Il faut rester compatible avec `Agent`, `get_agent(..., env)` pour les agents de planification, et avec les boucles `Trainer` / `SelfPlayTrainer`.
+
+**Décision :** `ExpertApprenticeAgent` dans `agents/planning/expert_apprentice.py`. L’expert est l’`MCTSAgent` existant (UCT + rollouts aléatoires). Pendant `act(..., training=True)`, l’action jouée est celle de l’expert ; on stocke `(s, a_expert, actions_legales)` dans un buffer circulaire. À chaque `observe()` (une fois le buffer assez grand), on effectue `train_steps_per_observe` pas de gradient : cross-entropie sur les logits du réseau avec masque des actions illégales (même idée que le masking en DQN). En `act(..., training=False)` (évaluation, GUI), seul le réseau choisit l’action (greedy masqué).
+
+**Pourquoi :** C’est le cœur de la décomposition « lent / rapide » du papier sans réimplémenter tout AlphaZero (pas de PUCT ni de réseau valeur dans l’arbre dans cette version). Réutiliser `MCTSAgent` évite la duplication de l’UCT et respecte la convention « un fichier autonome par algorithme » en s’appuyant sur un voisin du même dossier.
+
+**Limites assumées :** Pas d’injection des priors du réseau dans l’UCT (itération experte–apprenti complète du papier) ; pas de policy sur les visites complètes, seulement la meilleure action racine comme étiquette dure. Évolution possible documentée dans `docs/algorithms.md`.
+
+**Références :** Anthony, Tian, Barber, NeurIPS 2017 ; PDF du repo `docs/ExpertApprentice_1705.08439v4.pdf`.

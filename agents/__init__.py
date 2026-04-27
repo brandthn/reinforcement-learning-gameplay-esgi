@@ -7,6 +7,7 @@ from .value_based.ddqn_er import DDQNERAgent
 from .value_based.ddqn_per import DDQNPERAgent
 from .planning.random_rollout import RandomRolloutAgent
 from .planning.mcts import MCTSAgent
+from .planning.expert_apprentice import ExpertApprenticeAgent
 from .policy_based.reinforce import REINFORCEAgent
 from .policy_based.reinforce_mean_baseline import REINFORCEMeanBaselineAgent
 from .policy_based.reinforce_critic import REINFORCECriticAgent
@@ -22,6 +23,7 @@ AGENT_REGISTRY = {
     "ddqn_per": DDQNPERAgent,
     "random_rollout": RandomRolloutAgent,
     "mcts": MCTSAgent,
+    "expert_apprentice": ExpertApprenticeAgent,
     "reinforce": REINFORCEAgent,
     "reinforce_mean_baseline": REINFORCEMeanBaselineAgent,
     "reinforce_critic": REINFORCECriticAgent,
@@ -29,7 +31,7 @@ AGENT_REGISTRY = {
 }
 
 # Agents de planification : besoin d'une reference a l'env pour cloner.
-PLANNING_AGENTS = {"random_rollout", "mcts"}
+PLANNING_AGENTS = {"random_rollout", "mcts", "expert_apprentice"}
 
 
 def get_agent(name: str, env, params: dict = None):

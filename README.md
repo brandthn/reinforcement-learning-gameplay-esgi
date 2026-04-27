@@ -39,9 +39,9 @@ uv sync
 | Tabulaire | `tabular_q` | oui |
 | Value-based | `dqn`, `ddqn`, `ddqn_er`, `ddqn_per` | oui |
 | Policy gradient | `reinforce`, `reinforce_mean_baseline`, `reinforce_critic`, `ppo` | oui |
-| Planning | `random_rollout`, `mcts` | non (online) |
+| Planning | `random_rollout`, `mcts`, `expert_apprentice` | `random_rollout` / `mcts` : non (online) ; `expert_apprentice` : oui (imitation de MCTS) |
 
-Les agents de planification ne s'entraînent pas dans le temps : on évalue leur courbe **budget → score** via un script dédié (voir plus bas).
+Pour `random_rollout` et `mcts` seuls, on évalue la courbe **budget → score** via un script dédié (voir plus bas). `expert_apprentice` suit la boucle `Trainer` / `SelfPlayTrainer` comme les autres agents qui sauvent un `model_*.pt`.
 
 ---
 

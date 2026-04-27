@@ -30,6 +30,7 @@ AGENT_TEST_PARAMS = {
         "epsilon_start": 1.0,
         "epsilon_end": 0.01,
         "epsilon_decay_steps": 100,
+    },
     "reinforce": {
         "lr": 0.001,
         "gamma": 0.99,
@@ -54,6 +55,19 @@ AGENT_TEST_PARAMS = {
         "n_simulations": 5,
         "c_uct": 1.41,
         "max_rollout_depth": 50,
+    },
+    "expert_apprentice": {
+        "lr": 0.001,
+        "hidden_layers": [32, 32],
+        "n_simulations": 3,
+        "c_uct": 1.41,
+        "max_rollout_depth": 40,
+        "gamma": 1.0,
+        "buffer_capacity": 500,
+        "batch_size": 16,
+        "learning_starts": 32,
+        "train_steps_per_observe": 1,
+        "mlp_activation": "relu",
     },
 }
 
