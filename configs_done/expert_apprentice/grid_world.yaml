@@ -1,0 +1,27 @@
+env: grid_world
+agent: expert_apprentice
+agent_params:
+  lr: 0.001
+  hidden_layers: [16, 8]
+  mlp_activation: relu
+  n_simulations: 100
+  c_uct: 1.41
+  max_rollout_depth: 100
+  gamma: 0.98
+  buffer_capacity: 50000
+  batch_size: 64
+  learning_starts: 2000
+  train_steps_per_observe: 2
+training:
+  num_episodes: 50000
+  max_steps_per_episode: 200
+eval:
+  checkpoints:
+    - 1000
+    - 10000
+    - 50000
+    - 75000
+    - 100000
+  num_games: 100
+seeds:
+  - 42
