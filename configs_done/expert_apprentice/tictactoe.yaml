@@ -3,7 +3,7 @@ agent: expert_apprentice
 opponent: random
 agent_params:
   lr: 0.001
-  hidden_layers: [128, 128]
+  hidden_layers: [16, 16]
   mlp_activation: relu
   n_simulations: 120
   c_uct: 1.41
@@ -23,4 +23,5 @@ eval:
     - 50000
   num_games: 100
 seeds:
-  - 42
+  - 1
+  - 2
