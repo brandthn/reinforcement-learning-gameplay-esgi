@@ -1,0 +1,24 @@
+agent: tabular_q
+agent_params:
+  epsilon_decay_steps: 100000
+  epsilon_end: 0.05
+  epsilon_start: 1.0
+  gamma: 0.5
+  lr: 0.1
+env: tictactoe
+eval:
+  checkpoints:
+  - 1000
+  - 10000
+  - 50000
+  - 75000
+  - 100000
+  num_games: 100
+opponent: random
+seed: 2
+seeds:
+- 1
+- 2
+training:
+  max_steps_per_episode: 15
+  num_episodes: 100000

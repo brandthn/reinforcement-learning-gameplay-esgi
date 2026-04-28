@@ -1,0 +1,30 @@
+agent: expert_apprentice
+agent_params:
+  batch_size: 128
+  buffer_capacity: 100000
+  c_uct: 1.41
+  gamma: 1.0
+  hidden_layers:
+  - 16
+  - 16
+  learning_starts: 4000
+  lr: 0.001
+  max_rollout_depth: 200
+  mlp_activation: relu
+  n_simulations: 120
+  train_steps_per_observe: 2
+env: tictactoe
+eval:
+  checkpoints:
+  - 1000
+  - 10000
+  - 50000
+  num_games: 100
+opponent: random
+seed: 1
+seeds:
+- 1
+- 2
+training:
+  max_steps_per_episode: 200
+  num_episodes: 50000
