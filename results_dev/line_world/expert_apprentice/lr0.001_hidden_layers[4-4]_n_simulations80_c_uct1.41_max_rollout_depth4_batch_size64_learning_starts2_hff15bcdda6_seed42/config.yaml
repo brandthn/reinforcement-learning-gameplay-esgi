@@ -1,0 +1,34 @@
+agent: expert_apprentice
+agent_params:
+  batch_size: 64
+  buffer_capacity: 1000
+  c_uct: 1.41
+  early_stopping_patience: 4
+  gamma: 0.98
+  hidden_layers:
+  - 4
+  - 4
+  learning_starts: 2000
+  lr: 0.001
+  max_epochs: 5
+  max_iterations: 3
+  max_rollout_depth: 4
+  min_delta: 0.001
+  mlp_activation: relu
+  n_simulations: 80
+  opening_moves_to_skip: 1
+  policy_bonus_weight: 1.0
+  train_steps_per_observe: 1
+  val_fraction: 0.1
+env: line_world
+eval:
+  checkpoints:
+  - 1
+  num_games: 100
+results_dir: results_dev
+seed: 42
+seeds:
+- 42
+training:
+  max_steps_per_episode: 25
+  num_episodes: 1

@@ -5,6 +5,8 @@ import sys
 import os
 import random
 import argparse
+import hashlib
+import re
 
 import numpy as np
 import yaml
@@ -50,15 +52,83 @@ def get_device() -> str:
         pass
     return "cpu"
 
+
+def _short_value(value) -> str:
+    """Compact, path-safe representation for run-name values."""
+    if isinstance(value, float):
+        return f"{value:.6g}"
+    if isinstance(value, (list, tuple)):
+        inner = "-".join(_short_value(v) for v in value)
+        return f"[{inner}]"
+    text = str(value)
+    # Keep only path-safe characters and avoid noisy spaces/punctuation.
+    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[^A-Za-z0-9._\-\[\]]+", "-", text)
+    return text.strip("-") or "x"
+
+
+def _build_param_run_name(agent_params: dict, seed: int,
+                          max_name_len: int = 120) -> str:
+    """Build a readable, collision-safe run name capped for Windows paths."""
+    if not agent_params:
+        return f"default_seed{seed}"
+
+    full_parts = [
+        f"{k}{_short_value(v)}" for k, v in sorted(agent_params.items())
+    ]
+    full_name = "_".join(full_parts)
+    full_with_seed = f"{full_name}_seed{seed}"
+    if len(full_with_seed) <= max_name_len:
+        return full_with_seed
+
+    # Keep the most informative fields, then append short hash of full params.
+    preferred_keys = [
+        "lr",
+        "hidden_layers",
+        "n_simulations",
+        "c_uct",
+        "max_rollout_depth",
+        "batch_size",
+        "learning_starts",
+        "max_iterations",
+        "max_epochs",
+        "early_stopping_patience",
+        "policy_bonus_weight",
+        "opening_moves_to_skip",
+        "device",
+    ]
+    compact_parts = []
+    for key in preferred_keys:
+        if key in agent_params:
+            compact_parts.append(f"{key}{_short_value(agent_params[key])}")
+
+    if not compact_parts:
+        compact_parts = full_parts[:4]
+
+    digest = hashlib.sha1(full_with_seed.encode("utf-8")).hexdigest()[:10]
+    compact = "_".join(compact_parts)
+    candidate = f"{compact}_h{digest}_seed{seed}"
+    if len(candidate) <= max_name_len:
+        return candidate
+
+    # If still too long, progressively trim largest parts, keep hash + seed.
+    trimmed_parts = []
+    remaining = max_name_len - len(f"_h{digest}_seed{seed}")
+    for part in compact_parts:
+        if remaining <= 0:
+            break
+        take = min(len(part), max(6, remaining))
+        trimmed_parts.append(part[:take])
+        remaining -= take + 1  # account for underscore
+    trimmed = "_".join(trimmed_parts) or "params"
+    return f"{trimmed}_h{digest}_seed{seed}"
+
+
 def build_results_dir(base_dir: str, env_name: str, agent_name: str,
                       agent_params: dict, seed: int) -> str:
     """results/{env}/{agent}/{params}_seed{N}/"""
-    if agent_params:
-        parts = [f"{k}{v}" for k, v in sorted(agent_params.items())]
-        param_str = "_".join(parts) if parts else "default"
-    else:
-        param_str = "default"
-    return os.path.join(base_dir, env_name, agent_name, f"{param_str}_seed{seed}")
+    param_str = _build_param_run_name(agent_params, seed)
+    return os.path.join(base_dir, env_name, agent_name, param_str)
 
 
 def train_single(config: dict, seed: int) -> dict:

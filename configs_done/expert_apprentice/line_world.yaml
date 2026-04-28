@@ -6,28 +6,30 @@ agent_params:
   mlp_activation: relu
   n_simulations: 80
   c_uct: 1.41
-  max_rollout_depth: 100
-  gamma: 1.0
-  max_iterations: 5
+  max_rollout_depth: 4
+  gamma: 0.98
+  max_iterations: 3
   policy_bonus_weight: 1.0
   opening_moves_to_skip: 1
   val_fraction: 0.1
-  max_epochs: 20
+  max_epochs: 5
   early_stopping_patience: 4
-  min_delta: 0.0001
-  buffer_capacity: 50000
+  min_delta: 0.001
+  buffer_capacity: 1000
   batch_size: 64
   learning_starts: 2000
   train_steps_per_observe: 1
 training:
-  num_episodes: 100000
-  max_steps_per_episode: 100
+  num_episodes: 10000
+  max_steps_per_episode: 25
 eval:
   checkpoints:
+    - 100
+    - 500
     - 1000
+    - 5000
+    - 7500
     - 10000
-    - 50000
-    - 100000
   num_games: 100
 seeds:
   - 42
